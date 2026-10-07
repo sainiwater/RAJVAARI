@@ -4,24 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>RAJVAARI - शुद्ध पानी, भरोसे के साथ | Packaged Drinking Water</title>
-    <meta name="description" content="RAJVAARI Packaged Drinking Water - शुद्धता और ताजगी का संगम। प्रीमियम पैकेज्ड पेयजल ऑनलाइन ऑर्डर करें।">
+    <meta name="description" content="RAJVAARI Packaged Drinking Water - शुद्ध पानी, भरोसे के साथ। 1 Liter एवं 200ml बोतलें ऑनलाइन ऑर्डर करें।">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
-    <!-- QR Code Generator Library -->
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 </head>
 <body>
-    <!-- Top Decorative Water Wave Accent -->
+    <!-- Top Ambient Water Header -->
     <div class="water-header-bg">
         <div class="bubble bubble-1"></div>
         <div class="bubble bubble-2"></div>
         <div class="bubble bubble-3"></div>
-        <div class="bubble bubble-4"></div>
     </div>
 
-    <!-- Main Navigation Bar -->
+    <!-- Navigation Header -->
     <header class="app-header">
         <div class="header-container">
             <div class="brand-group">
@@ -30,7 +27,6 @@
                         <path d="M20 4C20 4 8 18 8 26C8 32.6274 13.3726 38 20 38C26.6274 38 32 32.6274 32 26C32 18 20 4 20 4Z" fill="url(#dropGrad)"/>
                         <path d="M14 27C14 23.5 16 20 18 17" stroke="white" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
                         <path d="M16 29L17 25L19 27L20 23L21 27L23 25L24 29H16Z" fill="#0077B6"/>
-                        <circle cx="27" cy="15" r="1.5" fill="white"/>
                         <defs>
                             <linearGradient id="dropGrad" x1="20" y1="4" x2="20" y2="38" gradientUnits="userSpaceOnUse">
                                 <stop stop-color="#FFFFFF"/>
@@ -46,64 +42,81 @@
                 </div>
             </div>
             <div class="header-contact">
-                <a href="#orderSection" class="btn-header-cta" id="headerCtaBtn">
-                    <span>अभी ऑर्डर करें</span>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                </a>
+                <span class="badge-tag">Packaged Drinking Water</span>
             </div>
         </div>
     </header>
 
     <main class="main-content">
-        <!-- Hero Water Section -->
+        <!-- Hero Section -->
         <section class="hero-section">
-            <div class="hero-badge">
-                <span class="pulse-dot"></span>
-                <span>100% शुद्ध और खनिज युक्त प्राकृतिक पेयजल</span>
-            </div>
             <h2 class="hero-title">
-                घर और व्यवसाय के लिए <span class="highlight-cyan">प्रीमियम पेयजल</span>
+                प्रीमियम पैकेज्ड पेयजल <span class="highlight-cyan">RAJVAARI</span>
             </h2>
             <p class="hero-subtext">
-                उन्नत 8-चरणीय शोधन (8-Stage RO + UV + Ozonation) और आवश्यक खनिजों से परिपूर्ण। आपके द्वार पर त्वरित एवं सुरक्षित डिलीवरी।
+                शुद्ध पानी, भरोसे के साथ। अपना बोतल साइज़ चुनें और आसानी से ऑर्डर बुक करें।
             </p>
-
-            <!-- Key Feature Badges -->
-            <div class="feature-pills">
-                <div class="feature-pill">
-                    <span class="pill-icon">💧</span>
-                    <span>8-Stage RO + UV</span>
-                </div>
-                <div class="feature-pill">
-                    <span class="pill-icon">🚚</span>
-                    <span>24 घंटे में डिलीवरी</span>
-                </div>
-                <div class="feature-pill">
-                    <span class="pill-icon">🛡️</span>
-                    <span>BIS & FSSAI प्रमाणित</span>
-                </div>
-                <div class="feature-pill">
-                    <span class="pill-icon">✨</span>
-                    <span>TDS संतुलित</span>
-                </div>
-            </div>
         </section>
 
-        <!-- Product Selector Gallery -->
-        <section class="products-section">
+        <!-- PRODUCT SELECTION SECTION (ONLY 2 PRODUCTS) -->
+        <section class="products-section" id="productsSection">
             <div class="section-title-wrap">
-                <span class="sub-heading">हमारा उत्पाद चयन</span>
-                <h3 class="section-title">RAJVAARI प्रॉडक्ट रेंज</h3>
+                <span class="sub-heading">उत्पाद चयन (Select Product)</span>
+                <h3 class="section-title">बोतल साइज़ चुनें</h3>
+                <p class="section-subtitle">नीचे किसी भी प्रॉडक्ट पर क्लिक करें, वह सीधे आपके ऑर्डर फॉर्म में लोड हो जाएगा</p>
             </div>
             
-            <div class="product-grid" id="productCardsContainer">
-                <!-- Dynamically populated product cards -->
+            <div class="product-cards-duo" id="productCardsContainer">
+                <!-- Product 1: 1 Liter Bottle -->
+                <div class="product-showcase-card" id="cardProd1L" data-product-id="bottle_1l">
+                    <div class="product-card-badge">सर्वाधिक लोकप्रिय</div>
+                    <div class="bottle-visual-box">
+                        <div class="bottle-art bottle-1l">
+                            <span class="bottle-water-shine"></span>
+                            <span class="bottle-label-text">RAJVAARI<br><strong>1 Liter</strong></span>
+                        </div>
+                    </div>
+                    <div class="product-info-block">
+                        <span class="product-brand-tag">RAJVAARI Drinking Water</span>
+                        <h4 class="product-size-title">1 Liter Bottle</h4>
+                        <div class="product-pricing">
+                            <span class="price-value" id="priceDisplay1L">₹20</span>
+                            <span class="price-unit">/ बोतल</span>
+                        </div>
+                        <button type="button" class="btn-order-select" id="btnSelect1L">
+                            <span>Order Now (ऑर्डर करें)</span>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Product 2: 200ml Bottle -->
+                <div class="product-showcase-card" id="cardProd200ml" data-product-id="bottle_200ml">
+                    <div class="product-card-badge compact-badge">कॉम्पैक्ट साइज़</div>
+                    <div class="bottle-visual-box">
+                        <div class="bottle-art bottle-200ml">
+                            <span class="bottle-water-shine"></span>
+                            <span class="bottle-label-text">RAJVAARI<br><strong>200ml</strong></span>
+                        </div>
+                    </div>
+                    <div class="product-info-block">
+                        <span class="product-brand-tag">RAJVAARI Drinking Water</span>
+                        <h4 class="product-size-title">200ml Bottle</h4>
+                        <div class="product-pricing">
+                            <span class="price-value" id="priceDisplay200ml">₹10</span>
+                            <span class="price-unit">/ बोतल</span>
+                        </div>
+                        <button type="button" class="btn-order-select" id="btnSelect200ml">
+                            <span>Order Now (ऑर्डर करें)</span>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                        </button>
+                    </div>
+                </div>
             </div>
         </section>
 
-        <!-- ORDER VIEW / FORM CONTAINER -->
+        <!-- SMART ORDER VIEW CONTAINER -->
         <div id="orderView">
-            <!-- Order Form Section -->
             <section class="order-section" id="orderSection">
                 <div class="card order-card">
                     <div class="card-header">
@@ -115,72 +128,64 @@
                             </svg>
                         </div>
                         <div>
-                            <h3 class="card-title">ग्राहक ऑर्डर फॉर्म (Customer Order Form)</h3>
-                            <p class="card-subtitle">नीचे विवरण भरें और आसानी से ऑर्डर बुक करें</p>
+                            <h3 class="card-title">स्मार्ट ऑर्डर फॉर्म (Smart Order Form)</h3>
+                            <p class="card-subtitle">चयनित उत्पाद की जानकारी स्वचालित रूप से लोड हो गई है</p>
                         </div>
                     </div>
 
                     <form id="rajvaariOrderForm" novalidate>
-                        <!-- Section: Product Selection -->
-                        <div class="form-group-block">
-                            <h4 class="form-block-title">
-                                <span class="step-num">1</span>
-                                <span>उत्पाद और मात्रा चुनें (Product & Quantity)</span>
-                            </h4>
-
-                            <div class="form-row">
-                                <div class="form-field full-width">
-                                    <label for="productSelect">10. प्रॉडक्ट चुनें (Product) <span class="req">*</span></label>
-                                    <div class="select-wrapper">
-                                        <select id="productSelect" required>
-                                            <option value="">-- प्रॉडक्ट चुनें --</option>
-                                            <option value="RAJVAARI Mineral Water 20L Jar" selected>RAJVAARI Mineral Water 20L Jar (20L जार)</option>
-                                            <option value="RAJVAARI Packaged 1L Bottles Box">RAJVAARI 1L Bottles Box (12 बोतलों का बॉक्स)</option>
-                                            <option value="RAJVAARI Packaged 500ml Bottles Box">RAJVAARI 500ml Bottles Box (24 बोतलों का बॉक्स)</option>
-                                            <option value="RAJVAARI Packaged 250ml Bottles Box">RAJVAARI 250ml Mini Box (48 बोतलों का बॉक्स)</option>
-                                            <option value="RAJVAARI Copper Enriched 20L Can">RAJVAARI Copper Enriched 20L Can (कॉपर युक्त जार)</option>
-                                        </select>
+                        <!-- SECTION 1: SELECTED PRODUCT PREVIEW CARD (NO DUPLICATE DROPDOWNS) -->
+                        <div class="selected-product-hero-card" id="selectedProductPreviewCard">
+                            <div class="sel-card-left">
+                                <div class="sel-icon-circle">💧</div>
+                                <div class="sel-text-meta">
+                                    <span class="sel-brand">RAJVAARI</span>
+                                    <h4 class="sel-product-name" id="previewProductName">RAJVAARI Drinking Water</h4>
+                                    <div class="sel-specs-row">
+                                        <span class="sel-pill" id="previewBottleSize">1 Liter Bottle</span>
+                                        <span class="sel-price-pill" id="previewUnitPrice">₹20 / Bottle</span>
                                     </div>
-                                    <div class="error-msg" id="productError"></div>
                                 </div>
                             </div>
-
-                            <div class="form-row two-col">
-                                <div class="form-field">
-                                    <label for="bottleSize">11. बोतल साइज़ (Bottle Size) <span class="req">*</span></label>
-                                    <div class="select-wrapper">
-                                        <select id="bottleSize" required>
-                                            <option value="20 Litre Jar">20 Litre Jar (20 लीटर जार)</option>
-                                            <option value="1 Litre Pack">1 Litre Pack (1 लीटर पैक)</option>
-                                            <option value="500 ml Pack">500 ml Pack (500 मिली पैक)</option>
-                                            <option value="250 ml Pack">250 ml Pack (250 मिली पैक)</option>
-                                        </select>
-                                    </div>
-                                    <div class="error-msg" id="bottleSizeError"></div>
-                                </div>
-
-                                <div class="form-field">
-                                    <label for="quantity">12. मात्रा (Quantity) <span class="req">*</span></label>
-                                    <div class="qty-control">
-                                        <button type="button" class="qty-btn" id="qtyMinus" aria-label="कम करें">-</button>
-                                        <input type="number" id="quantity" min="1" max="1000" value="1" required>
-                                        <button type="button" class="qty-btn" id="qtyPlus" aria-label="बढ़ाएं">+</button>
-                                    </div>
-                                    <div class="error-msg" id="quantityError"></div>
-                                </div>
+                            <div class="sel-card-right">
+                                <span class="sel-status-badge">✓ Product Selected</span>
+                                <button type="button" class="btn-change-product" id="btnChangeProduct">
+                                    <span>← Change Product</span>
+                                </button>
                             </div>
                         </div>
 
-                        <!-- Section: Customer Details -->
+                        <!-- SECTION 2: SMART QUANTITY STEPPER -->
+                        <div class="form-group-block">
+                            <div class="block-header-inline">
+                                <h4 class="form-block-title">
+                                    <span class="step-num">1</span>
+                                    <span>मात्रा चुनें (Quantity)</span>
+                                </h4>
+                                <span class="calc-hint-text">Unit Price: <strong id="stepperUnitPriceHint">₹20</strong></span>
+                            </div>
+
+                            <div class="quantity-stepper-wrap">
+                                <button type="button" class="qty-step-btn" id="qtyMinusBtn" aria-label="कम करें">−</button>
+                                <div class="qty-step-display">
+                                    <input type="number" id="quantityInput" min="1" max="1000" value="1" required>
+                                    <span class="qty-unit-label" id="qtyUnitLabel">Bottles (बोतलें)</span>
+                                </div>
+                                <button type="button" class="qty-step-btn" id="qtyPlusBtn" aria-label="बढ़ाएं">+</button>
+                            </div>
+                            <div class="error-msg" id="quantityError"></div>
+                        </div>
+
+                        <!-- SECTION 3: CUSTOMER DETAILS -->
                         <div class="form-group-block">
                             <h4 class="form-block-title">
                                 <span class="step-num">2</span>
-                                <span>ग्राहक संपर्क जानकारी (Contact Details)</span>
+                                <span>ग्राहक संपर्क जानकारी (Customer Details)</span>
                             </h4>
 
                             <div class="form-row">
                                 <div class="form-field full-width">
-                                    <label for="customerName">1. ग्राहक का नाम (Customer Name) <span class="req">*</span></label>
+                                    <label for="customerName">ग्राहक का नाम (Customer Name) <span class="req">*</span></label>
                                     <div class="input-wrapper">
                                         <span class="input-icon">👤</span>
                                         <input type="text" id="customerName" placeholder="उदा. राहुल शर्मा" required autocomplete="name">
@@ -191,7 +196,7 @@
 
                             <div class="form-row two-col">
                                 <div class="form-field">
-                                    <label for="mobileNumber">2. मोबाइल नंबर (Mobile Number) <span class="req">*</span></label>
+                                    <label for="mobileNumber">मोबाइल नंबर (Mobile Number) <span class="req">*</span></label>
                                     <div class="input-wrapper">
                                         <span class="input-prefix">+91</span>
                                         <input type="tel" id="mobileNumber" maxlength="10" placeholder="10 अंकों का नंबर" required autocomplete="tel">
@@ -200,7 +205,7 @@
                                 </div>
 
                                 <div class="form-field">
-                                    <label for="alternateMobile">3. वैकल्पिक मोबाइल नंबर (Alternate Mobile)</label>
+                                    <label for="alternateMobile">वैकल्पिक नंबर (Alternate Mobile - optional)</label>
                                     <div class="input-wrapper">
                                         <span class="input-prefix">+91</span>
                                         <input type="tel" id="alternateMobile" maxlength="10" placeholder="वैकल्पिक नंबर (यदि है)">
@@ -210,7 +215,7 @@
                             </div>
                         </div>
 
-                        <!-- Section: Delivery Address -->
+                        <!-- SECTION 4: DELIVERY ADDRESS -->
                         <div class="form-group-block">
                             <h4 class="form-block-title">
                                 <span class="step-num">3</span>
@@ -219,7 +224,7 @@
 
                             <div class="form-row">
                                 <div class="form-field full-width">
-                                    <label for="fullAddress">4. पूरा पता (Full Address - मकान / दुकान नं., सड़क) <span class="req">*</span></label>
+                                    <label for="fullAddress">पूरा पता (Full Address - मकान / दुकान नं., सड़क) <span class="req">*</span></label>
                                     <div class="input-wrapper">
                                         <textarea id="fullAddress" rows="2" placeholder="मकान संख्या, बिल्डिंग, गली, लैंडमार्क आदि" required></textarea>
                                     </div>
@@ -229,7 +234,7 @@
 
                             <div class="form-row two-col">
                                 <div class="form-field">
-                                    <label for="villageArea">5. गांव / इलाका (Village / Area) <span class="req">*</span></label>
+                                    <label for="villageArea">गांव / इलाका (Village / Area) <span class="req">*</span></label>
                                     <div class="input-wrapper">
                                         <span class="input-icon">📍</span>
                                         <input type="text" id="villageArea" placeholder="इलाका / कॉलोनी / गांव" required>
@@ -238,10 +243,10 @@
                                 </div>
 
                                 <div class="form-field">
-                                    <label for="city">6. शहर (City) <span class="req">*</span></label>
+                                    <label for="city">शहर (City) <span class="req">*</span></label>
                                     <div class="input-wrapper">
                                         <span class="input-icon">🏙️</span>
-                                        <input type="text" id="city" placeholder="उदा. जयपुर / दिल्ली" required>
+                                        <input type="text" id="city" placeholder="शहर" required>
                                     </div>
                                     <div class="error-msg" id="cityError"></div>
                                 </div>
@@ -249,58 +254,83 @@
 
                             <div class="form-row three-col">
                                 <div class="form-field">
-                                    <label for="district">7. जिला (District) <span class="req">*</span></label>
+                                    <label for="district">जिला (District) <span class="req">*</span></label>
                                     <input type="text" id="district" placeholder="जिला" required>
                                     <div class="error-msg" id="districtError"></div>
                                 </div>
 
                                 <div class="form-field">
-                                    <label for="state">8. राज्य (State) <span class="req">*</span></label>
-                                    <input type="text" id="state" placeholder="उदा. राजस्थान" value="Rajasthan" required>
+                                    <label for="state">राज्य (State) <span class="req">*</span></label>
+                                    <input type="text" id="state" placeholder="राज्य" value="Rajasthan" required>
                                     <div class="error-msg" id="stateError"></div>
                                 </div>
 
                                 <div class="form-field">
-                                    <label for="pincode">9. पिन कोड (PIN Code) <span class="req">*</span></label>
+                                    <label for="pincode">पिन कोड (PIN Code) <span class="req">*</span></label>
                                     <input type="tel" id="pincode" maxlength="6" placeholder="6 अंक" required>
                                     <div class="error-msg" id="pincodeError"></div>
                                 </div>
                             </div>
+
+                            <!-- Optional Customer Message -->
+                            <div class="form-row" style="margin-top: 14px;">
+                                <div class="form-field full-width">
+                                    <label for="customerMessage">ग्राहक संदेश (Customer Message - optional)</label>
+                                    <input type="text" id="customerMessage" placeholder="विशेष डिलीवरी निर्देश या समय (यदि कोई हो)">
+                                </div>
+                            </div>
                         </div>
 
-                        <!-- Live Order Calculation Summary -->
+                        <!-- SECTION 5: COMPACT ORDER SUMMARY -->
                         <div class="order-summary-box">
                             <div class="summary-header">
                                 <span class="summary-title">ऑर्डर सारांश (Order Summary)</span>
                                 <span class="live-tag">LIVE CALCULATED</span>
                             </div>
+                            
                             <div class="summary-line">
-                                <span class="summary-label">उप-योग (Subtotal):</span>
-                                <span class="summary-val" id="summarySubtotal">₹0</span>
+                                <span class="summary-label">Product:</span>
+                                <span class="summary-val" id="summaryProductName">RAJVAARI Drinking Water</span>
                             </div>
                             <div class="summary-line">
-                                <span class="summary-label">डिलीवरी शुल्क (Delivery Charge):</span>
+                                <span class="summary-label">Bottle Size:</span>
+                                <strong class="summary-val text-blue" id="summaryBottleSize">1 Liter</strong>
+                            </div>
+                            <div class="summary-line">
+                                <span class="summary-label">Quantity:</span>
+                                <span class="summary-val" id="summaryQuantity">1 Bottle</span>
+                            </div>
+                            <div class="summary-line">
+                                <span class="summary-label">Price per Bottle:</span>
+                                <span class="summary-val" id="summaryUnitPrice">₹20</span>
+                            </div>
+                            <div class="summary-line">
+                                <span class="summary-label">Subtotal (उप-योग):</span>
+                                <span class="summary-val" id="summarySubtotal">₹20</span>
+                            </div>
+                            <div class="summary-line">
+                                <span class="summary-label">Delivery Charge:</span>
                                 <span class="summary-val text-green" id="summaryDelivery">निःशुल्क (FREE)</span>
                             </div>
                             <div class="summary-line">
-                                <span class="summary-label">विशेष छूट (Special Discount):</span>
+                                <span class="summary-label">Discount:</span>
                                 <span class="summary-val text-green" id="summaryDiscount">- ₹0</span>
                             </div>
                             <div class="summary-divider"></div>
                             <div class="summary-line total-line">
-                                <span class="summary-label">कुल ऑर्डर राशि (Total Amount):</span>
-                                <span class="summary-val total-amount" id="summaryTotal">₹0</span>
+                                <span class="summary-label">Total Order Amount:</span>
+                                <span class="summary-val total-amount" id="summaryTotal">₹20</span>
                             </div>
                             <div class="advance-note">
-                                ℹ️ टेस्ट पेमेंट राशि: <strong>₹1</strong> (Order Creation & Verification)
+                                ℹ️ टेस्ट पेमेंट: <strong>₹1</strong> (ऑर्डर सत्यापन हेतु)
                             </div>
                         </div>
 
-                        <!-- Form Submit Button -->
+                        <!-- Submit Order Button -->
                         <div class="form-actions">
                             <button type="submit" class="btn-submit" id="submitOrderBtn">
                                 <span class="btn-spinner hidden" id="submitSpinner"></span>
-                                <span class="btn-text" id="submitBtnText">अभी ऑर्डर करें (Place Order)</span>
+                                <span class="btn-text" id="submitBtnText">Place Order (ऑर्डर सबमिट करें)</span>
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                             </button>
                         </div>
@@ -309,217 +339,146 @@
             </section>
         </div>
 
-        <!-- SUCCESS VIEW / CONFIRMATION PAGE (Hidden by default) -->
+        <!-- ORDER SUCCESS & OFFICIAL PHONEPE PAYMENT VIEW (Hidden by default) -->
         <div id="successView" class="hidden">
             <section class="success-section">
-                <!-- Success Alert Banner -->
-                <div class="success-banner-card">
-                    <div class="success-icon-animated">
-                        <svg viewBox="0 0 52 52" class="checkmark">
-                            <circle class="checkmark-circle" cx="26" cy="26" r="25" fill="none"/>
-                            <path class="checkmark-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
-                        </svg>
-                    </div>
-                    <h2 class="success-headline">ऑर्डर सफलतापूर्वक दर्ज हो गया!</h2>
-                    <p class="success-sub">Order ID: <strong id="dispOrderIdTop">RJV-WAITING</strong> आपके नंबर पर भी सुरक्षित कर दिया गया है।</p>
-                </div>
-
-                <!-- 24-Hour Payment Limit Countdown Card -->
-                <div class="countdown-card" id="paymentCountdownCard">
-                    <div class="countdown-header">
-                        <span class="countdown-icon">⏳</span>
-                        <span class="countdown-title">Payment के लिए 24 घंटे बाकी</span>
-                    </div>
-                    <div class="countdown-timer-display" id="paymentCountdownTimer">
-                        <div class="timer-box"><span id="cdHours">23</span><small>घंटे</small></div>
-                        <span class="timer-colon">:</span>
-                        <div class="timer-box"><span id="cdMinutes">59</span><small>मिनट</small></div>
-                        <span class="timer-colon">:</span>
-                        <div class="timer-box"><span id="cdSeconds">59</span><small>सेकंड</small></div>
-                    </div>
-                    <p class="countdown-note">समय सीमा समाप्त होने पर असत्यापित ऑर्डर बैकएंड द्वारा निरस्त कर दिया जाएगा।</p>
-                </div>
-
-                <!-- Order Cancelled Banner (Shown ONLY when backend returns CANCELLED status) -->
-                <div class="order-cancelled-box hidden" id="orderCancelledBox">
-                    <div class="cancelled-icon">⚠️</div>
-                    <div class="cancelled-text">
-                        <strong>ऑर्डर स्थिति:</strong><br>
-                        Payment समय पर प्राप्त नहीं हुआ। आपका order cancel कर दिया गया है।
-                    </div>
-                </div>
-
-                <!-- Comprehensive Order Details Card -->
+                <!-- COMPACT ORDER DETAILS CARD -->
                 <div class="card status-card">
                     <div class="card-header status-header">
                         <div>
-                            <span class="sub-label">ऑर्डर विवरण</span>
-                            <h3 class="order-id-display" id="dispOrderId">RJV-XXXXXXXX</h3>
+                            <span class="sub-label">ऑर्डर सफलतापूर्वक दर्ज हो गया! ✓</span>
+                            <h3 class="order-id-display" id="dispOrderId">RAJ-XXXXXXXX</h3>
                         </div>
                         <div class="status-badge-pending" id="dispBadge">
                             <span class="status-dot-pulse"></span>
-                            <span>PENDING (लंबित)</span>
+                            <span>PENDING</span>
                         </div>
                     </div>
 
-                    <!-- Critical Verification Warning Box -->
-                    <div class="verification-notice-box">
-                        <div class="notice-icon">ℹ️</div>
-                        <div class="notice-text">
-                            <strong class="verification-msg-highlight">₹1 का भुगतान करें। Payment verification के बाद आपका order confirm किया जाएगा।</strong>
-                        </div>
-                    </div>
-
-                    <!-- Status Grid -->
-                    <div class="status-indicators-grid">
-                        <div class="indicator-item">
-                            <span class="ind-label">भुगतान स्थिति (Payment Status)</span>
-                            <span class="ind-val badge-pending" id="dispPaymentStatus">PENDING</span>
-                        </div>
-                        <div class="indicator-item">
-                            <span class="ind-label">ऑर्डर स्थिति (Order Status)</span>
-                            <span class="ind-val badge-pending" id="dispOrderStatus">PENDING</span>
-                        </div>
-                        <div class="indicator-item">
-                            <span class="ind-label">डिलीवरी स्थिति (Delivery Status)</span>
-                            <span class="ind-val badge-pending" id="dispDeliveryStatus">PENDING</span>
-                        </div>
-                        <div class="indicator-item full-span">
-                            <span class="ind-label">अनुमानित डिलीवरी (Expected Delivery)</span>
-                            <span class="ind-val text-blue" id="dispExpectedDelivery">पुष्टिकरण के लगभग 24 घंटे बाद (सेवा उपलब्धता के अनुसार)</span>
-                        </div>
-                    </div>
-
-                    <!-- Order Details Summary Table -->
+                    <!-- Compact Order Summary List -->
                     <div class="confirmed-details-list">
                         <div class="detail-row">
-                            <span class="d-label">ग्राहक का नाम:</span>
+                            <span class="d-label">Order ID:</span>
+                            <strong class="d-val text-blue" id="dispOrderIdRow">RAJ-XXXXXXXX</strong>
+                        </div>
+                        <div class="detail-row">
+                            <span class="d-label">ग्राहक का नाम (Customer):</span>
                             <strong class="d-val" id="dispCustomerName">-</strong>
                         </div>
                         <div class="detail-row">
-                            <span class="d-label">मोबाइल नंबर:</span>
+                            <span class="d-label">मोबाइल नंबर (Mobile):</span>
                             <strong class="d-val" id="dispMobileNumber">-</strong>
                         </div>
                         <div class="detail-row">
-                            <span class="d-label">डिलीवरी का पता:</span>
-                            <span class="d-val address-val" id="dispAddress">-</span>
+                            <span class="d-label">डिलीवरी का पता (Address):</span>
+                            <span class="d-val" id="dispAddress">-</span>
                         </div>
                         <div class="detail-row">
-                            <span class="d-label">उत्पाद एवं बोतल साइज़:</span>
-                            <strong class="d-val" id="dispProductAndSize">-</strong>
+                            <span class="d-label">उत्पाद (Product):</span>
+                            <strong class="d-val" id="dispProduct">RAJVAARI Drinking Water</strong>
+                        </div>
+                        <div class="detail-row">
+                            <span class="d-label">बोतल साइज़ (Size):</span>
+                            <strong class="d-val text-blue" id="dispBottleSize">1 Liter</strong>
                         </div>
                         <div class="detail-row">
                             <span class="d-label">मात्रा (Quantity):</span>
-                            <strong class="d-val" id="dispQuantity">-</strong>
+                            <strong class="d-val" id="dispQuantity">1 Bottles</strong>
+                        </div>
+                        <div class="detail-row">
+                            <span class="d-label">कुल राशि (Total Amount):</span>
+                            <strong class="d-val" id="dispTotalAmount">₹20</strong>
                         </div>
                         <div class="detail-row highlight-row">
                             <span class="d-label">Payment Required:</span>
                             <strong class="d-val payment-req-val" id="dispPaymentRequired">₹1</strong>
                         </div>
+                        <div class="detail-row">
+                            <span class="d-label">Payment Status:</span>
+                            <span class="d-val badge-pending" id="dispPaymentStatus">PENDING</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="d-label">Order Status:</span>
+                            <span class="d-val badge-pending" id="dispOrderStatus">PENDING</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="d-label">Expected Delivery:</span>
+                            <span class="d-val" id="dispExpectedDelivery">पुष्टिकरण के लगभग 24 घंटे बाद (सेवा उपलब्धता के अनुसार)</span>
+                        </div>
                     </div>
 
-                    <!-- Professional UPI & QR Payment Section -->
-                    <div class="payment-action-box">
-                        <div class="payment-box-header">
-                            <div class="pay-title-group">
-                                <span class="pay-icon">💳</span>
-                                <div>
-                                    <h4 class="pay-title">UPI / QR कोड भुगतान (Payment Required: ₹1)</h4>
-                                    <p class="pay-sub">GPay, PhonePe, Paytm, BHIM या किसी भी UPI ऐप से स्कैन करें</p>
-                                </div>
+                    <!-- ========================================================
+                         OFFICIAL PHONEPE PAYMENT SECTION
+                         Uses uploaded PhonePe QR image asset: assets/phonepe-payment-qr.jpg
+                         ======================================================== -->
+                    <div class="phonepe-payment-card">
+                        <div class="pay-card-header">
+                            <div>
+                                <h3 class="pay-main-title">Complete Payment</h3>
+                                <p class="pay-subtitle">Scan & Pay using PhonePe</p>
                             </div>
-                            <div class="pay-amount-tag">₹1</div>
+                            <div class="pay-badge-amount">Pay ₹1</div>
                         </div>
 
-                        <!-- Dynamic QR Code Container -->
-                        <div class="qr-code-wrapper">
-                            <div class="qr-frame">
-                                <div id="upiQrCodeContainer" class="qr-canvas-holder"></div>
-                                <div class="qr-badge-overlay">
-                                    <span>SCAN & PAY ₹1</span>
-                                </div>
-                            </div>
-                            <p class="qr-scan-guide">दूसरे फोन से Google Pay, PhonePe, Paytm या BHIM से स्कैन करें</p>
-                            <div class="upi-id-copy-row">
-                                <span class="upi-label">UPI ID:</span>
-                                <code id="dispUpiIdText">9950906310-2@ybl</code>
-                                <button type="button" class="btn-copy-upi" id="copyUpiBtn" title="कॉपी करें">
-                                    <span id="copyBtnText">कॉपी करें</span>
-                                </button>
-                            </div>
+                        <!-- Instructions -->
+                        <div class="pay-instruction-strip">
+                            <span>PhonePe से QR scan करके ₹1 payment करें।</span>
                         </div>
 
-                        <!-- Action Buttons: Pay ₹1, WhatsApp, New Order -->
-                        <div class="payment-buttons-grid">
-                            <!-- Direct UPI App Launcher Button -->
-                            <a href="#" class="btn-action btn-pay-upi" id="payUpiActionBtn">
-                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
-                                <span>Pay ₹1</span>
-                            </a>
+                        <!-- Official PhonePe QR Image Container -->
+                        <div class="phonepe-qr-image-wrapper">
+                            <div class="qr-brand-label">Scan & Pay using PhonePe</div>
+                            <div class="payee-name-badge">
+                                <span>Prakash Saini</span>
+                            </div>
+                            <div class="phonepe-qr-frame">
+                                <img src="assets/phonepe-payment-qr.jpg" alt="PhonePe Payment QR Code - Prakash Saini" id="phonepeQrImg" class="phonepe-qr-img" loading="eager">
+                            </div>
+                            <div class="payment-amount-highlight">Payment Amount: <strong>₹1</strong></div>
+                        </div>
 
-                            <!-- WhatsApp Sharing Button -->
-                            <a href="#" class="btn-action btn-whatsapp" id="whatsappShareBtn" target="_blank" rel="noopener">
-                                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 14.4c-.3-.1-1.8-.9-2.1-1-.3-.1-.5-.1-.7.2s-.8 1-1 1.2c-.2.2-.4.2-.7.1s-1.3-.5-2.5-1.5c-.9-.8-1.5-1.8-1.7-2.1-.2-.3 0-.5.1-.7.1-.1.3-.4.5-.5.2-.2.2-.3.3-.5.1-.2 0-.4 0-.5s-.7-1.7-1-2.3c-.3-.6-.5-.5-.7-.5h-.6c-.2 0-.6.1-.9.4-.3.3-1.2 1.2-1.2 2.8s1.2 3.3 1.4 3.5c.2.2 2.4 3.7 5.9 5.2.8.4 1.5.6 2 .7.8.3 1.6.2 2.2.1.7-.1 2.1-.9 2.4-1.7.3-.8.3-1.5.2-1.7-.1-.2-.3-.3-.6-.4zM12 2C6.5 2 2 6.5 2 12c0 1.8.5 3.5 1.4 5L2 22l5.2-1.4c1.4.8 3.1 1.4 4.8 1.4 5.5 0 10-4.5 10-10S17.5 2 12 2z"/></svg>
-                                <span>WhatsApp पर जानकारी भेजें</span>
-                            </a>
+                        <!-- Mobile Guidance & Verification Notice -->
+                        <div class="pay-mobile-guide">
+                            <p class="guide-item">📱 <strong>PhonePe से Scan & Pay</strong></p>
+                            <p class="guide-item">Payment करने के बाद इसी order का payment verification pending रहेगा।</p>
+                        </div>
 
-                            <!-- Reset / New Order Button -->
-                            <button type="button" class="btn-action btn-secondary" id="newOrderBtn">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                        <div class="verification-notice-pill" id="verificationNoticePill">
+                            <span class="pulse-amber-dot"></span>
+                            <span id="verificationNoticeText">Payment verification pending</span>
+                        </div>
+
+                        <!-- Payment Actions (No UPI links, clean action) -->
+                        <div class="pay-actions-group">
+                            <button type="button" class="btn-completed-pay" id="btnCompletedPayment">
+                                <span>I've Completed Payment</span>
+                            </button>
+                            <button type="button" class="btn-new-order-secondary" id="newOrderBtn">
                                 <span>नया ऑर्डर</span>
                             </button>
+                        </div>
+
+                        <div class="pay-24h-note">
+                            ⏱️ <strong>Payment verification pending:</strong> Order will be confirmed after payment verification. यदि 24 घंटे में payment verify नहीं होता तो order cancel कर दिया जाएगा।
                         </div>
                     </div>
                 </div>
             </section>
         </div>
-
-        <!-- Trust & Quality Highlights -->
-        <section class="trust-section">
-            <div class="trust-grid">
-                <div class="trust-card">
-                    <div class="trust-icon">🔬</div>
-                    <h4>उच्चतम शुद्धता</h4>
-                    <p>कठोर प्रयोगशाला परीक्षण व TDS नियंत्रण के साथ शुद्धता की गारंटी।</p>
-                </div>
-                <div class="trust-card">
-                    <div class="trust-icon">🌿</div>
-                    <h4>कुदरती स्वाद</h4>
-                    <p>आवश्यक इलेक्ट्रोलाइट्स और खनिजों से भरपूर ताजा प्राकृतिक स्वाद।</p>
-                </div>
-                <div class="trust-card">
-                    <div class="trust-icon">📦</div>
-                    <h4>सुरक्षित पैकेजिंग</h4>
-                    <p>फूड-ग्रेड, BPA-फ्री हाइजीनिक सील जार और बॉटल्स।</p>
-                </div>
-                <div class="trust-card">
-                    <div class="trust-icon">📞</div>
-                    <h4>ग्राहक सहायता</h4>
-                    <p>ऑर्डर एवं त्वरित डिलीवरी के लिए हमारी हेल्पलाइन सदैव उपलब्ध।</p>
-                </div>
-            </div>
-        </section>
     </main>
 
-    <!-- Footer -->
+    <!-- Clean Footer -->
     <footer class="app-footer">
         <div class="footer-container">
-            <div class="footer-brand">
-                <h3 class="footer-logo">RAJVAARI</h3>
-                <p class="footer-desc">प्रीमियम पैकेज्ड ड्रिंकिंग वॉटर — शुद्ध पानी, भरोसे के साथ।</p>
-            </div>
-            <div class="footer-links">
-                <p>📍 सेवा क्षेत्र: समस्त नजदीकी शहर व ग्रामीण क्षेत्र</p>
-                <p>⏰ डिलीवरी समय: प्रातः 7:00 बजे से सायं 8:00 बजे तक</p>
-                <p>📱 सहायता नंबर: <span id="footerHelplineText">+91-9876543210</span></p>
-            </div>
+            <h3 class="footer-logo">RAJVAARI</h3>
+            <p class="footer-desc">Packaged Drinking Water — शुद्ध पानी, भरोसे के साथ</p>
             <div class="footer-bottom">
-                <p>© <span id="currentYear"></span> RAJVAARI Water. सर्वाधिकार सुरक्षित (All Rights Reserved).</p>
+                <p>© <span id="currentYear"></span> RAJVAARI. सर्वाधिकार सुरक्षित (All Rights Reserved).</p>
             </div>
         </div>
     </footer>
 
-    <!-- Toast Notification Element -->
+    <!-- Toast Notification -->
     <div id="toastNotification" class="toast hidden"></div>
 
     <script src="app.js"></script>
