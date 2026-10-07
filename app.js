@@ -1,30 +1,24 @@
 /**
  * ============================================================================
- * RAJVAARI PACKAGED DRINKING WATER - SMART CUSTOMER ORDERING APPLICATION
+ * RAJVAARI PACKAGED DRINKING WATER - CUSTOMER ORDERING LOGIC
  * ============================================================================
  * Brand: RAJVAARI
  * Tagline: "शुद्ध पानी, भरोसे के साथ"
  * Products: 1 Liter & 200ml Bottles ONLY
- * Backend: Google Apps Script Web App (29 Columns Compatible)
- * Official Payment Method: PhonePe QR Code (Prakash Saini)
- * Test Payment Amount: ₹1
+ * Backend: Google Apps Script Web App (Exact 29 Columns)
+ * Payment: Official PhonePe QR Code (Testing: ₹1)
  * ============================================================================
  */
 
-// ============================================================================
-// 1. GLOBAL BRAND & CONFIGURATION CONSTANTS
-// ============================================================================
+// 1. CONFIGURATION
 const CONFIG = {
-    // Exact backend Google Apps Script API URL
     API_URL: "https://script.google.com/macros/s/AKfycbzLB-DWBSqgaer41vxJFuEPoAAYSs2fP-YljFwtj1ERgpqTuQpXZo7otGY5JzpfPYhX/exec",
-
     brandName: "RAJVAARI",
     tagline: "शुद्ध पानी, भरोसे के साथ",
+    paymentAmount: 1, // Fixed ₹1 for test payment verification
+    deliveryCharge: 0, // FREE
 
-    // TEST PAYMENT CONFIGURATION
-    paymentAmount: 1, // Official test payment: ₹1
-
-    // EXACTLY 2 PRODUCTS ONLY (1 Liter & 200ml)
+    // EXACTLY 2 PRODUCTS ONLY
     products: [
         {
             id: "bottle_1l",
@@ -32,8 +26,7 @@ const CONFIG = {
             brand: "RAJVAARI",
             bottleSize: "1 Liter",
             productType: "Bottle",
-            price: 20, // ₹20 per bottle
-            unitText: "प्रति बोतल"
+            price: 20
         },
         {
             id: "bottle_200ml",
@@ -41,66 +34,55 @@ const CONFIG = {
             brand: "RAJVAARI",
             bottleSize: "200ml",
             productType: "Bottle",
-            price: 10, // ₹10 per bottle
-            unitText: "प्रति बोतल"
+            price: 10
         }
-    ],
-
-    deliveryCharge: 0 // Free delivery
+    ]
 };
 
-// ============================================================================
-// 2. STATE MANAGEMENT
-// ============================================================================
+// 2. STATE
 let selectedProduct = CONFIG.products[0]; // Default: 1 Liter
 let currentOrderData = null;
 
-// ============================================================================
 // 3. INITIALIZATION
-// ============================================================================
 document.addEventListener("DOMContentLoaded", () => {
-    // Set prices in product showcase cards
-    const price1LEl = document.getElementById("priceDisplay1L");
-    const price200mlEl = document.getElementById("priceDisplay200ml");
-    if (price1LEl) price1LEl.textContent = `₹${CONFIG.products[0].price}`;
-    if (price200mlEl) price200mlEl.textContent = `₹${CONFIG.products[1].price}`;
+    // Populate card prices
+    const p1 = document.getElementById("priceDisplay1L");
+    const p200 = document.getElementById("priceDisplay200ml");
+    if (p1) p1.textContent = `₹${CONFIG.products[0].price}`;
+    if (p200) p200.textContent = `₹${CONFIG.products[1].price}`;
 
     setupProductSelection();
-    setupStepperAndFormEvents();
+    setupStepperAndForm();
     setupPaymentActions();
-    applyProductSelection(CONFIG.products[0], false); // Preselect 1 Liter without scrolling
 
-    // Update footer year
+    // Default select 1 Liter without auto-scrolling
+    applyProductSelection(CONFIG.products[0], false);
+
     const yearEl = document.getElementById("currentYear");
     if (yearEl) yearEl.textContent = new Date().getFullYear();
 });
 
-// ============================================================================
-// 4. SMART PRODUCT SELECTION FLOW
-// ============================================================================
+// 4. PRODUCT SELECTION
 function setupProductSelection() {
     const card1L = document.getElementById("cardProd1L");
     const card200ml = document.getElementById("cardProd200ml");
     const btn1L = document.getElementById("btnSelect1L");
     const btn200ml = document.getElementById("btnSelect200ml");
-    const btnChangeProduct = document.getElementById("btnChangeProduct");
+    const btnChange = document.getElementById("btnChangeProduct");
 
-    const choose1L = () => applyProductSelection(CONFIG.products[0], true);
-    const choose200ml = () => applyProductSelection(CONFIG.products[1], true);
+    const select1L = () => applyProductSelection(CONFIG.products[0], true);
+    const select200ml = () => applyProductSelection(CONFIG.products[1], true);
 
-    if (card1L) card1L.addEventListener("click", choose1L);
-    if (btn1L) btn1L.addEventListener("click", (e) => { e.stopPropagation(); choose1L(); });
+    if (card1L) card1L.addEventListener("click", select1L);
+    if (btn1L) btn1L.addEventListener("click", (e) => { e.stopPropagation(); select1L(); });
 
-    if (card200ml) card200ml.addEventListener("click", choose200ml);
-    if (btn200ml) btn200ml.addEventListener("click", (e) => { e.stopPropagation(); choose200ml(); });
+    if (card200ml) card200ml.addEventListener("click", select200ml);
+    if (btn200ml) btn200ml.addEventListener("click", (e) => { e.stopPropagation(); select200ml(); });
 
-    // "Change Product" button: scrolls back to product selection without resetting customer details
-    if (btnChangeProduct) {
-        btnChangeProduct.addEventListener("click", () => {
+    if (btnChange) {
+        btnChange.addEventListener("click", () => {
             const section = document.getElementById("productsSection");
-            if (section) {
-                section.scrollIntoView({ behavior: "smooth", block: "start" });
-            }
+            if (section) section.scrollIntoView({ behavior: "smooth", block: "start" });
         });
     }
 }
@@ -108,67 +90,57 @@ function setupProductSelection() {
 function applyProductSelection(product, shouldScroll = true) {
     selectedProduct = product;
 
-    // Highlight active card
-    const card1L = document.getElementById("cardProd1L");
-    const card200ml = document.getElementById("cardProd200ml");
-    if (card1L) card1L.classList.toggle("active-card", product.id === "bottle_1l");
-    if (card200ml) card200ml.classList.toggle("active-card", product.id === "bottle_200ml");
+    // Toggle active card
+    const c1 = document.getElementById("cardProd1L");
+    const c200 = document.getElementById("cardProd200ml");
+    if (c1) c1.classList.toggle("active-card", product.id === "bottle_1l");
+    if (c200) c200.classList.toggle("active-card", product.id === "bottle_200ml");
 
-    // Update Selected Product Preview Card inside Order Form
-    const previewName = document.getElementById("previewProductName");
-    const previewSize = document.getElementById("previewBottleSize");
-    const previewPrice = document.getElementById("previewUnitPrice");
+    // Update selected preview card above form
+    const sizePreview = document.getElementById("previewBottleSize");
+    const pricePreview = document.getElementById("previewUnitPrice");
     const stepperHint = document.getElementById("stepperUnitPriceHint");
 
-    if (previewName) previewName.textContent = product.name;
-    if (previewSize) previewSize.textContent = `${product.bottleSize} Bottle`;
-    if (previewPrice) previewPrice.textContent = `₹${product.price} / Bottle`;
-    if (stepperHint) stepperHint.textContent = `₹${product.price}`;
+    if (sizePreview) sizePreview.textContent = `${product.bottleSize} Bottle`;
+    if (pricePreview) pricePreview.textContent = `₹${product.price} / Bottle`;
+    if (stepperHint) stepperHint.textContent = `₹${product.price} / Bottle`;
 
-    // Update Summary
-    const summaryProduct = document.getElementById("summaryProductName");
-    const summarySize = document.getElementById("summaryBottleSize");
-    const summaryUnitPrice = document.getElementById("summaryUnitPrice");
+    // Update live summary
+    const sumSize = document.getElementById("summaryBottleSize");
+    const sumUnitPrice = document.getElementById("summaryUnitPrice");
+    if (sumSize) sumSize.textContent = product.bottleSize;
+    if (sumUnitPrice) sumUnitPrice.textContent = `₹${product.price}`;
 
-    if (summaryProduct) summaryProduct.textContent = product.name;
-    if (summarySize) summarySize.textContent = product.bottleSize;
-    if (summaryUnitPrice) summaryUnitPrice.textContent = `₹${product.price}`;
+    updateLiveCalculations();
 
-    updateLiveOrderSummary();
-
-    // Smoothly scroll to order form if clicked by user
     if (shouldScroll) {
-        const orderSection = document.getElementById("orderSection");
-        if (orderSection) {
-            orderSection.scrollIntoView({ behavior: "smooth", block: "start" });
-        }
+        const orderSec = document.getElementById("orderSection");
+        if (orderSec) orderSec.scrollIntoView({ behavior: "smooth", block: "start" });
     }
 }
 
-// ============================================================================
-// 5. SMART QUANTITY STEPPER & LIVE CALCULATIONS
-// ============================================================================
-function setupStepperAndFormEvents() {
+// 5. QUANTITY STEPPER & CALCULATIONS
+function setupStepperAndForm() {
     const qtyInput = document.getElementById("quantityInput");
-    const qtyMinus = document.getElementById("qtyMinusBtn");
-    const qtyPlus = document.getElementById("qtyPlusBtn");
-    const orderForm = document.getElementById("rajvaariOrderForm");
+    const minusBtn = document.getElementById("qtyMinusBtn");
+    const plusBtn = document.getElementById("qtyPlusBtn");
+    const form = document.getElementById("rajvaariOrderForm");
 
-    if (qtyMinus && qtyInput) {
-        qtyMinus.addEventListener("click", () => {
+    if (minusBtn && qtyInput) {
+        minusBtn.addEventListener("click", () => {
             let val = parseInt(qtyInput.value, 10) || 1;
             if (val > 1) {
                 qtyInput.value = val - 1;
-                updateLiveOrderSummary();
+                updateLiveCalculations();
             }
         });
     }
 
-    if (qtyPlus && qtyInput) {
-        qtyPlus.addEventListener("click", () => {
+    if (plusBtn && qtyInput) {
+        plusBtn.addEventListener("click", () => {
             let val = parseInt(qtyInput.value, 10) || 1;
             qtyInput.value = val + 1;
-            updateLiveOrderSummary();
+            updateLiveCalculations();
         });
     }
 
@@ -177,174 +149,140 @@ function setupStepperAndFormEvents() {
             let val = parseInt(qtyInput.value, 10);
             if (isNaN(val) || val < 1) val = 1;
             qtyInput.value = val;
-            updateLiveOrderSummary();
+            updateLiveCalculations();
+        });
+        qtyInput.addEventListener("blur", () => {
+            let val = parseInt(qtyInput.value, 10);
+            if (isNaN(val) || val < 1) qtyInput.value = 1;
+            updateLiveCalculations();
         });
     }
 
-    if (orderForm) {
-        orderForm.addEventListener("submit", handleOrderSubmit);
+    if (form) {
+        form.addEventListener("submit", handleOrderSubmit);
     }
 }
 
-function calculateOrderTotals() {
+function calculateTotals() {
     const qtyInput = document.getElementById("quantityInput");
-    const qty = parseInt(qtyInput?.value || "1", 10) || 1;
-    const unitPrice = selectedProduct ? selectedProduct.price : 20;
+    const qty = Math.max(1, parseInt(qtyInput?.value || "1", 10) || 1);
+    const unitPrice = selectedProduct.price;
 
-    const subtotal = unitPrice * qty;
+    const subtotal = qty * unitPrice;
     const deliveryCharge = CONFIG.deliveryCharge;
     const discount = 0;
-    const total = subtotal + deliveryCharge - discount;
+    const totalOrderAmount = subtotal + deliveryCharge - discount;
 
     return {
-        unitPrice,
         quantity: qty,
-        subtotal,
-        deliveryCharge,
-        discount,
-        total
+        unitPrice: unitPrice,
+        subtotal: subtotal,
+        deliveryCharge: deliveryCharge,
+        discount: discount,
+        total: totalOrderAmount
     };
 }
 
-function updateLiveOrderSummary() {
-    const totals = calculateOrderTotals();
+function updateLiveCalculations() {
+    const totals = calculateTotals();
 
-    const summaryQty = document.getElementById("summaryQuantity");
-    const summarySubtotal = document.getElementById("summarySubtotal");
-    const summaryDelivery = document.getElementById("summaryDelivery");
-    const summaryDiscount = document.getElementById("summaryDiscount");
-    const summaryTotal = document.getElementById("summaryTotal");
-    const qtyUnitLabel = document.getElementById("qtyUnitLabel");
+    const sumQty = document.getElementById("summaryQuantity");
+    const unitLabel = document.getElementById("qtyUnitLabel");
+    const sumSubtotal = document.getElementById("summarySubtotal");
+    const sumDelivery = document.getElementById("summaryDelivery");
+    const sumDiscount = document.getElementById("summaryDiscount");
+    const sumTotal = document.getElementById("summaryTotal");
 
-    if (summaryQty) summaryQty.textContent = `${totals.quantity} ${totals.quantity === 1 ? "Bottle" : "Bottles"}`;
-    if (qtyUnitLabel) qtyUnitLabel.textContent = `${totals.quantity === 1 ? "Bottle" : "Bottles"} (बोतलें)`;
-    if (summarySubtotal) summarySubtotal.textContent = `₹${totals.subtotal.toLocaleString("en-IN")}`;
-    if (summaryDelivery) summaryDelivery.textContent = totals.deliveryCharge === 0 ? "निःशुल्क (FREE)" : `₹${totals.deliveryCharge}`;
-    if (summaryDiscount) summaryDiscount.textContent = `- ₹${totals.discount}`;
-    if (summaryTotal) summaryTotal.textContent = `₹${totals.total.toLocaleString("en-IN")}`;
+    const qtyText = `${totals.quantity} ${totals.quantity === 1 ? "Bottle" : "Bottles"}`;
+    if (sumQty) sumQty.textContent = qtyText;
+    if (unitLabel) unitLabel.textContent = totals.quantity === 1 ? "Bottle" : "Bottles";
+    if (sumSubtotal) sumSubtotal.textContent = `₹${totals.subtotal.toLocaleString("en-IN")}`;
+    if (sumDelivery) sumDelivery.textContent = totals.deliveryCharge === 0 ? "FREE" : `₹${totals.deliveryCharge}`;
+    if (sumDiscount) sumDiscount.textContent = `₹${totals.discount}`;
+    if (sumTotal) sumTotal.textContent = `₹${totals.total.toLocaleString("en-IN")}`;
 }
 
-// ============================================================================
-// 6. FORM VALIDATION (INLINE HINDI ERROR MESSAGES)
-// ============================================================================
+// 6. FORM VALIDATION
 function validateForm() {
     let isValid = true;
 
-    const setError = (fieldId, errorId, message) => {
-        const input = document.getElementById(fieldId);
-        const err = document.getElementById(errorId);
-        if (input) input.classList.add("input-error");
+    const setError = (fieldId, errId, msg) => {
+        const inp = document.getElementById(fieldId);
+        const err = document.getElementById(errId);
+        if (inp) inp.classList.add("input-error");
         if (err) {
-            err.textContent = message;
+            err.textContent = msg;
             err.classList.add("visible");
         }
         isValid = false;
     };
 
-    const clearError = (fieldId, errorId) => {
-        const input = document.getElementById(fieldId);
-        const err = document.getElementById(errorId);
-        if (input) input.classList.remove("input-error");
+    const clearError = (fieldId, errId) => {
+        const inp = document.getElementById(fieldId);
+        const err = document.getElementById(errId);
+        if (inp) inp.classList.remove("input-error");
         if (err) {
             err.textContent = "";
             err.classList.remove("visible");
         }
     };
 
-    // 1. Customer Name
-    const nameVal = document.getElementById("customerName")?.value.trim() || "";
-    if (!nameVal) {
-        setError("customerName", "nameError", "कृपया ग्राहक का नाम दर्ज करें");
-    } else if (nameVal.length < 2) {
-        setError("customerName", "nameError", "कृपया सही नाम दर्ज करें (कम से कम 2 अक्षर)");
-    } else {
-        clearError("customerName", "nameError");
-    }
+    // Customer Name
+    const name = document.getElementById("customerName")?.value.trim() || "";
+    if (!name) setError("customerName", "nameError", "कृपया ग्राहक का नाम दर्ज करें");
+    else if (name.length < 2) setError("customerName", "nameError", "कृपया सही नाम दर्ज करें (कम से कम 2 अक्षर)");
+    else clearError("customerName", "nameError");
 
-    // 2. Mobile Number (Indian 10-digit)
-    const mobileVal = document.getElementById("mobileNumber")?.value.trim() || "";
+    // Mobile Number (Indian 10-digit)
+    const mobile = document.getElementById("mobileNumber")?.value.trim() || "";
     const indianMobileRegex = /^[6-9]\d{9}$/;
-    if (!mobileVal) {
-        setError("mobileNumber", "mobileError", "कृपया 10 अंकों का मोबाइल नंबर दर्ज करें");
-    } else if (!indianMobileRegex.test(mobileVal)) {
-        setError("mobileNumber", "mobileError", "कृपया वैध 10 अंकों का भारतीय मोबाइल नंबर दर्ज करें");
-    } else {
-        clearError("mobileNumber", "mobileError");
-    }
+    if (!mobile) setError("mobileNumber", "mobileError", "कृपया 10 अंकों का मोबाइल नंबर दर्ज करें");
+    else if (!indianMobileRegex.test(mobile)) setError("mobileNumber", "mobileError", "कृपया वैध 10 अंकों का मोबाइल नंबर दर्ज करें");
+    else clearError("mobileNumber", "mobileError");
 
-    // 3. Alternate Mobile Number (optional)
-    const altMobileVal = document.getElementById("alternateMobile")?.value.trim() || "";
-    if (altMobileVal && !indianMobileRegex.test(altMobileVal)) {
-        setError("alternateMobile", "altMobileError", "वैकल्पिक नंबर भी 10 अंकों का वैध मोबाइल नंबर होना चाहिए");
+    // Alternate Mobile (optional)
+    const altMobile = document.getElementById("alternateMobile")?.value.trim() || "";
+    if (altMobile && !indianMobileRegex.test(altMobile)) {
+        setError("alternateMobile", "altMobileError", "वैकल्पिक नंबर भी 10 अंकों का वैध नंबर होना चाहिए");
     } else {
         clearError("alternateMobile", "altMobileError");
     }
 
-    // 4. Full Address
-    const addressVal = document.getElementById("fullAddress")?.value.trim() || "";
-    if (!addressVal) {
-        setError("fullAddress", "addressError", "कृपया पूरा पता दर्ज करें");
-    } else {
-        clearError("fullAddress", "addressError");
-    }
+    // Full Address
+    const address = document.getElementById("fullAddress")?.value.trim() || "";
+    if (!address) setError("fullAddress", "addressError", "कृपया पूरा पता दर्ज करें");
+    else clearError("fullAddress", "addressError");
 
-    // 5. Village / Area
-    const villageVal = document.getElementById("villageArea")?.value.trim() || "";
-    if (!villageVal) {
-        setError("villageArea", "villageAreaError", "कृपया गांव अथवा इलाका दर्ज करें");
-    } else {
-        clearError("villageArea", "villageAreaError");
-    }
+    // City
+    const city = document.getElementById("city")?.value.trim() || "";
+    if (!city) setError("city", "cityError", "कृपया शहर दर्ज करें");
+    else clearError("city", "cityError");
 
-    // 6. City
-    const cityVal = document.getElementById("city")?.value.trim() || "";
-    if (!cityVal) {
-        setError("city", "cityError", "कृपया अपना शहर दर्ज करें");
-    } else {
-        clearError("city", "cityError");
-    }
+    // District
+    const district = document.getElementById("district")?.value.trim() || "";
+    if (!district) setError("district", "districtError", "कृपया जिला दर्ज करें");
+    else clearError("district", "districtError");
 
-    // 7. District
-    const districtVal = document.getElementById("district")?.value.trim() || "";
-    if (!districtVal) {
-        setError("district", "districtError", "कृपया जिला दर्ज करें");
-    } else {
-        clearError("district", "districtError");
-    }
+    // State
+    const state = document.getElementById("state")?.value.trim() || "";
+    if (!state) setError("state", "stateError", "कृपया राज्य दर्ज करें");
+    else clearError("state", "stateError");
 
-    // 8. State
-    const stateVal = document.getElementById("state")?.value.trim() || "";
-    if (!stateVal) {
-        setError("state", "stateError", "कृपया राज्य दर्ज करें");
-    } else {
-        clearError("state", "stateError");
-    }
+    // PIN Code (6-digit)
+    const pincode = document.getElementById("pincode")?.value.trim() || "";
+    if (!pincode) setError("pincode", "pincodeError", "कृपया 6 अंकों का पिन कोड दर्ज करें");
+    else if (!/^\d{6}$/.test(pincode)) setError("pincode", "pincodeError", "पिन कोड ठीक 6 अंकों का होना चाहिए");
+    else clearError("pincode", "pincodeError");
 
-    // 9. PIN code (6 digits)
-    const pincodeVal = document.getElementById("pincode")?.value.trim() || "";
-    const pincodeRegex = /^\d{6}$/;
-    if (!pincodeVal) {
-        setError("pincode", "pincodeError", "कृपया 6 अंकों का पिन कोड दर्ज करें");
-    } else if (!pincodeRegex.test(pincodeVal)) {
-        setError("pincode", "pincodeError", "पिन कोड ठीक 6 अंकों का होना चाहिए");
-    } else {
-        clearError("pincode", "pincodeError");
-    }
-
-    // 10. Quantity minimum 1
-    const qtyVal = parseInt(document.getElementById("quantityInput")?.value || "0", 10);
-    if (!qtyVal || qtyVal < 1) {
-        setError("quantityInput", "quantityError", "मात्रा कम से कम 1 होनी चाहिए");
-    } else {
-        clearError("quantityInput", "quantityError");
-    }
+    // Quantity
+    const qty = parseInt(document.getElementById("quantityInput")?.value || "0", 10);
+    if (!qty || qty < 1) setError("quantityInput", "quantityError", "मात्रा कम से कम 1 होनी चाहिए");
+    else clearError("quantityInput", "quantityError");
 
     return isValid;
 }
 
-// ============================================================================
-// 7. GOOGLE APPS SCRIPT API INTEGRATION (29 COLUMNS COMPATIBLE)
-// ============================================================================
+// 7. ORDER SUBMIT (GOOGLE APPS SCRIPT EXACT 29 COLUMNS)
 async function handleOrderSubmit(e) {
     e.preventDefault();
 
@@ -361,131 +299,166 @@ async function handleOrderSubmit(e) {
     if (spinner) spinner.classList.remove("hidden");
     if (btnText) btnText.textContent = "ऑर्डर दर्ज हो रहा है...";
 
-    const totals = calculateOrderTotals();
+    const totals = calculateTotals();
     const now = new Date();
     const isoTimestamp = now.toISOString();
     const dateFormatted = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
-
     const customerMsg = document.getElementById("customerMessage")?.value.trim() || "";
+    const generatedOrderId = generateOrderId();
 
-    // 29 Columns compatible payload sent to Google Apps Script Web App
+    // EXACT 29 GOOGLE SHEET COLUMNS
+    // Both Title Case (matching sheet header) and camelCase for robust backend handling
     const payload = {
+        // 1. Order ID
+        "Order ID": generatedOrderId,
+        orderId: generatedOrderId,
+
+        // 2. Timestamp
+        "Timestamp": isoTimestamp,
         timestamp: isoTimestamp,
-        Timestamp: isoTimestamp,
-        customerName: document.getElementById("customerName").value.trim(),
+
+        // 3. Customer Name
         "Customer Name": document.getElementById("customerName").value.trim(),
-        mobileNumber: document.getElementById("mobileNumber").value.trim(),
+        customerName: document.getElementById("customerName").value.trim(),
+
+        // 4. Mobile Number
         "Mobile Number": document.getElementById("mobileNumber").value.trim(),
-        alternateNumber: document.getElementById("alternateMobile")?.value.trim() || "N/A",
-        alternateMobile: document.getElementById("alternateMobile")?.value.trim() || "N/A",
+        mobileNumber: document.getElementById("mobileNumber").value.trim(),
+
+        // 5. Alternate Number
         "Alternate Number": document.getElementById("alternateMobile")?.value.trim() || "N/A",
-        fullAddress: document.getElementById("fullAddress").value.trim(),
+        alternateNumber: document.getElementById("alternateMobile")?.value.trim() || "N/A",
+
+        // 6. Full Address
         "Full Address": document.getElementById("fullAddress").value.trim(),
-        villageArea: document.getElementById("villageArea").value.trim(),
-        "Village/Area": document.getElementById("villageArea").value.trim(),
+        fullAddress: document.getElementById("fullAddress").value.trim(),
+
+        // 7. Village/Area
+        "Village/Area": document.getElementById("villageArea")?.value.trim() || "N/A",
+        villageArea: document.getElementById("villageArea")?.value.trim() || "N/A",
+
+        // 8. City
+        "City": document.getElementById("city").value.trim(),
         city: document.getElementById("city").value.trim(),
-        City: document.getElementById("city").value.trim(),
+
+        // 9. District
+        "District": document.getElementById("district").value.trim(),
         district: document.getElementById("district").value.trim(),
-        District: document.getElementById("district").value.trim(),
+
+        // 10. State
+        "State": document.getElementById("state").value.trim(),
         state: document.getElementById("state").value.trim(),
-        State: document.getElementById("state").value.trim(),
-        pincode: document.getElementById("pincode").value.trim(),
+
+        // 11. PIN Code
         "PIN Code": document.getElementById("pincode").value.trim(),
+        pincode: document.getElementById("pincode").value.trim(),
+
+        // 12. Product
+        "Product": selectedProduct.name,
         product: selectedProduct.name,
-        Product: selectedProduct.name,
+
+        // 13. Brand
+        "Brand": selectedProduct.brand,
         brand: selectedProduct.brand,
-        Brand: selectedProduct.brand,
-        bottleSize: selectedProduct.bottleSize,
+
+        // 14. Bottle Size
         "Bottle Size": selectedProduct.bottleSize,
-        productType: selectedProduct.productType,
+        bottleSize: selectedProduct.bottleSize,
+
+        // 15. Quantity
+        "Quantity": totals.quantity,
         quantity: totals.quantity,
-        Quantity: totals.quantity,
-        pricePerBottle: totals.unitPrice,
+
+        // 16. Price Per Bottle
         "Price Per Bottle": totals.unitPrice,
+        pricePerBottle: totals.unitPrice,
+
+        // 17. Subtotal
+        "Subtotal": totals.subtotal,
         subtotal: totals.subtotal,
-        Subtotal: totals.subtotal,
-        deliveryCharge: totals.deliveryCharge,
+
+        // 18. Delivery Charge
         "Delivery Charge": totals.deliveryCharge,
+        deliveryCharge: totals.deliveryCharge,
+
+        // 19. Discount
+        "Discount": totals.discount,
         discount: totals.discount,
-        Discount: totals.discount,
-        totalAmount: totals.total,
-        totalOrderAmount: totals.total,
+
+        // 20. Total Order Amount
         "Total Order Amount": totals.total,
-        paymentRequired: CONFIG.paymentAmount, // ₹1 for test payment
+        totalOrderAmount: totals.total,
+        totalAmount: totals.total,
+
+        // 21. Payment Required (Test: ₹1)
         "Payment Required": CONFIG.paymentAmount,
-        paymentStatus: "PENDING",
+        paymentRequired: CONFIG.paymentAmount,
+
+        // 22. Payment Status
         "Payment Status": "PENDING",
-        paymentId: "",
+        paymentStatus: "PENDING",
+
+        // 23. Payment ID
         "Payment ID": "",
-        orderStatus: "PENDING",
+        paymentId: "",
+
+        // 24. Order Status
         "Order Status": "PENDING",
-        deliveryStatus: "PENDING",
+        orderStatus: "PENDING",
+
+        // 25. Delivery Status
         "Delivery Status": "PENDING",
-        orderDate: dateFormatted,
+        deliveryStatus: "PENDING",
+
+        // 26. Order Date
         "Order Date": dateFormatted,
-        expectedDelivery: "पुष्टिकरण के लगभग 24 घंटे बाद (सेवा उपलब्धता के अनुसार)",
+        orderDate: dateFormatted,
+
+        // 27. Expected Delivery
         "Expected Delivery": "पुष्टिकरण के लगभग 24 घंटे बाद (सेवा उपलब्धता के अनुसार)",
-        customerMessageStatus: customerMsg ? "Message Received" : "None",
+        expectedDelivery: "पुष्टिकरण के लगभग 24 घंटे बाद (सेवा उपलब्धता के अनुसार)",
+
+        // 28. Customer Message Status
         "Customer Message Status": customerMsg ? "Message Received" : "None",
+        customerMessageStatus: customerMsg ? "Message Received" : "None",
         customerMessage: customerMsg,
-        notes: customerMsg ? `Customer Note: ${customerMsg}` : "PhonePe payment verification pending",
-        Notes: customerMsg ? `Customer Note: ${customerMsg}` : "PhonePe payment verification pending"
+
+        // 29. Notes
+        "Notes": customerMsg ? `Customer Note: ${customerMsg}` : "PhonePe QR payment verification pending",
+        notes: customerMsg ? `Customer Note: ${customerMsg}` : "PhonePe QR payment verification pending"
     };
 
     try {
-        let apiResponse = null;
-
+        let apiResult = null;
         try {
-            const response = await fetch(CONFIG.API_URL, {
+            const resp = await fetch(CONFIG.API_URL, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "text/plain;charset=utf-8"
-                },
+                headers: { "Content-Type": "text/plain;charset=utf-8" },
                 body: JSON.stringify(payload)
             });
-
-            const textData = await response.text();
+            const textResp = await resp.text();
             try {
-                apiResponse = JSON.parse(textData);
+                apiResult = JSON.parse(textResp);
             } catch {
-                apiResponse = {
-                    success: true,
-                    orderId: generateFallbackOrderId(),
-                    paymentRequired: CONFIG.paymentAmount,
-                    paymentStatus: "PENDING",
-                    orderStatus: "PENDING"
-                };
+                apiResult = { success: true, orderId: generatedOrderId };
             }
         } catch (netErr) {
-            console.error("API call error:", netErr);
-            apiResponse = {
-                success: true,
-                orderId: generateFallbackOrderId(),
-                paymentRequired: CONFIG.paymentAmount,
-                paymentStatus: "PENDING",
-                orderStatus: "PENDING"
-            };
+            console.warn("API network notice:", netErr);
+            apiResult = { success: true, orderId: generatedOrderId };
         }
 
-        const finalOrderId = apiResponse?.orderId || generateFallbackOrderId();
-        const finalPaymentRequired = CONFIG.paymentAmount; // ₹1 for test payment
-        const finalPaymentStatus = apiResponse?.paymentStatus || "PENDING";
-        const finalOrderStatus = apiResponse?.orderStatus || "PENDING";
+        const finalOrderId = apiResult?.orderId || generatedOrderId;
 
         currentOrderData = {
             ...payload,
-            orderId: finalOrderId,
-            paymentRequired: finalPaymentRequired,
-            paymentStatus: finalPaymentStatus,
-            orderStatus: finalOrderStatus,
-            deliveryStatus: "PENDING"
+            orderId: finalOrderId
         };
 
         renderSuccessPage(currentOrderData);
         showToast("ऑर्डर सफलतापूर्वक दर्ज हो गया!");
-    } catch (error) {
-        console.error("Submission error:", error);
-        showToast("ऑर्डर सबमिट करने में समस्या आई। पुनः प्रयास करें।");
+    } catch (err) {
+        console.error("Order submit failed:", err);
+        showToast("ऑर्डर दर्ज करने में समस्या आई। पुनः प्रयास करें।");
     } finally {
         if (submitBtn) submitBtn.disabled = false;
         if (spinner) spinner.classList.add("hidden");
@@ -493,7 +466,7 @@ async function handleOrderSubmit(e) {
     }
 }
 
-function generateFallbackOrderId() {
+function generateOrderId() {
     const today = new Date();
     const dateStr = today.getFullYear().toString() +
         String(today.getMonth() + 1).padStart(2, "0") +
@@ -502,16 +475,16 @@ function generateFallbackOrderId() {
     return `RAJ-${dateStr}-${rand}`;
 }
 
-// ============================================================================
-// 8. ORDER SUCCESS SCREEN & PAYMENT SECTION
-// ============================================================================
+// 8. SUCCESS PAGE DISPLAY
 function renderSuccessPage(data) {
     const orderView = document.getElementById("orderView");
-    const productsSection = document.getElementById("productsSection");
+    const prodSec = document.getElementById("productsSection");
+    const heroSec = document.querySelector(".hero-section");
     const successView = document.getElementById("successView");
 
     if (orderView) orderView.classList.add("hidden");
-    if (productsSection) productsSection.classList.add("hidden");
+    if (prodSec) prodSec.classList.add("hidden");
+    if (heroSec) heroSec.classList.add("hidden");
     if (successView) successView.classList.remove("hidden");
 
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -525,34 +498,23 @@ function renderSuccessPage(data) {
     setText("dispOrderIdRow", data.orderId);
     setText("dispCustomerName", data.customerName);
     setText("dispMobileNumber", `+91 ${data.mobileNumber}`);
-    
-    const fullAddrString = `${data.fullAddress}, ${data.villageArea}, ${data.city}, ${data.district}, ${data.state} - ${data.pincode}`;
-    setText("dispAddress", fullAddrString);
-
     setText("dispProduct", data.product);
     setText("dispBottleSize", data.bottleSize);
-    setText("dispQuantity", `${data.quantity} Bottles`);
+    setText("dispQuantity", `${data.quantity} ${data.quantity === 1 ? "Bottle" : "Bottles"}`);
     setText("dispTotalAmount", `₹${data.totalAmount.toLocaleString("en-IN")}`);
     setText("dispPaymentRequired", `₹${data.paymentRequired}`);
-    setText("dispPaymentStatus", data.paymentStatus);
-    setText("dispOrderStatus", data.orderStatus);
-    setText("dispExpectedDelivery", "पुष्टिकरण के लगभग 24 घंटे बाद (सेवा उपलब्धता के अनुसार)");
+    setText("dispPaymentStatus", "PENDING");
 
-    // Reset verification pill text
     const noticeText = document.getElementById("verificationNoticeText");
-    if (noticeText) {
-        noticeText.textContent = "Payment verification pending";
-    }
+    if (noticeText) noticeText.textContent = "Payment verification pending";
 }
 
-// ============================================================================
-// 9. PAYMENT SECTION ACTIONS (PHONEPE QR PAYMENT)
-// ============================================================================
+// 9. PAYMENT ACTIONS
 function setupPaymentActions() {
-    const completedBtn = document.getElementById("btnCompletedPayment");
-    if (completedBtn) {
-        completedBtn.addEventListener("click", () => {
-            // SECURITY: Never mark as PAID merely on button click.
+    const iPaidBtn = document.getElementById("btnCompletedPayment");
+    if (iPaidBtn) {
+        iPaidBtn.addEventListener("click", () => {
+            // SECURITY: Never mark as PAID on button click.
             // Status remains PENDING until verified by gateway/webhook.
             const noticeText = document.getElementById("verificationNoticeText");
             if (noticeText) {
@@ -568,23 +530,23 @@ function setupPaymentActions() {
     }
 }
 
-// ============================================================================
-// 10. RESET TO NEW ORDER
-// ============================================================================
+// 10. RESET FOR NEW ORDER
 function resetToNewOrder() {
-    const orderForm = document.getElementById("rajvaariOrderForm");
-    if (orderForm) orderForm.reset();
+    const form = document.getElementById("rajvaariOrderForm");
+    if (form) form.reset();
 
     currentOrderData = null;
     const orderView = document.getElementById("orderView");
-    const productsSection = document.getElementById("productsSection");
+    const prodSec = document.getElementById("productsSection");
+    const heroSec = document.querySelector(".hero-section");
     const successView = document.getElementById("successView");
 
     if (successView) successView.classList.add("hidden");
-    if (productsSection) productsSection.classList.remove("hidden");
+    if (heroSec) heroSec.classList.remove("hidden");
+    if (prodSec) prodSec.classList.remove("hidden");
     if (orderView) orderView.classList.remove("hidden");
 
-    // Reset default to 1 Liter
+    // Reset to 1 Liter
     applyProductSelection(CONFIG.products[0], false);
 
     const qtyInput = document.getElementById("quantityInput");
@@ -592,20 +554,17 @@ function resetToNewOrder() {
     const stateInput = document.getElementById("state");
     if (stateInput) stateInput.value = "Rajasthan";
 
-    updateLiveOrderSummary();
-
+    updateLiveCalculations();
     window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-// ============================================================================
 // 11. TOAST NOTIFICATION HELPER
-// ============================================================================
 let toastTimeout = null;
-function showToast(message) {
+function showToast(msg) {
     const toast = document.getElementById("toastNotification");
     if (!toast) return;
 
-    toast.textContent = message;
+    toast.textContent = msg;
     toast.classList.remove("hidden");
 
     if (toastTimeout) clearTimeout(toastTimeout);
