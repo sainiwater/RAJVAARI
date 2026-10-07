@@ -1,36 +1,60 @@
 /**
  * ============================================================================
- * RAJVAARI PACKAGED DRINKING WATER - GOOGLE APPS SCRIPT BACKEND
+ * RAJVAARI PACKAGED DRINKING WATER - GOOGLE APPS SCRIPT COMPLETE BACKEND
  * ============================================================================
  * Brand: RAJVAARI
  * Tagline: "शुद्ध पानी, भरोसे के साथ"
- * Features:
- *  1. doPost: Receives order submissions and appends to Sheet (Exact 29 Columns)
- *  2. doGet: Supports live order tracking by Order ID + Mobile Number
- *  3. onEdit: Automatic Admin workflow when Payment Status is changed to PAID:
- *     - Updates Order Status -> CONFIRMED
- *     - Updates Delivery Status -> PROCESSING
- *     - Sets Expected Delivery -> +24 Hours
- *     - Dispatches SMS notification (with duplicate prevention)
+ * Spreadsheet: RAJVAARI WATER ORDERS
+ * Sheet Tab: Orders
+ *
+ * EXACT 29 COLUMNS:
+ * 1. Order ID
+ * 2. Timestamp
+ * 3. Customer Name
+ * 4. Mobile Number
+ * 5. Alternate Number
+ * 6. Full Address
+ * 7. Village/Area
+ * 8. City
+ * 9. District
+ * 10. State
+ * 11. PIN Code
+ * 12. Product
+ * 13. Brand
+ * 14. Bottle Size
+ * 15. Quantity
+ * 16. Price Per Bottle
+ * 17. Subtotal
+ * 18. Delivery Charge
+ * 19. Discount
+ * 20. Total Order Amount
+ * 21. Payment Required
+ * 22. Payment Status
+ * 23. Payment ID
+ * 24. Order Status
+ * 25. Delivery Status
+ * 26. Order Date
+ * 27. Expected Delivery
+ * 28. Customer Message Status
+ * 29. Notes
  * ============================================================================
  */
 
 // ============================================================================
-// 1. BACKEND CONFIGURATION
+// CONFIGURATION
 // ============================================================================
-const BACKEND_CONFIG = {
-  SHEET_NAME: "Orders", // Name of the sheet tab (or first active tab)
-  
-  // SMS API CONFIGURATION (Part 18)
-  // Set your provider details in Google Apps Script Script Properties or below:
-  SMS: {
-    PROVIDER: "",   // e.g. "FAST2SMS", "MSG91", "TWILIO" (Leave blank if not connected)
-    API_URL: "",    // e.g. "https://www.fast2sms.com/dev/bulkV2"
-    API_KEY: "",    // Your SMS Gateway API Key
-    SENDER_ID: "RJVARI"
-  },
+const SCRIPT_CONFIG = {
+  SPREADSHEET_NAME: "RAJVAARI WATER ORDERS",
+  SHEET_NAME: "Orders",
+  BRAND_NAME: "RAJVAARI",
+  PRODUCT_NAME: "RAJVAARI Drinking Water",
 
-  // EXACT 29 COLUMNS (Part 11)
+  // SMS GATEWAY CREDENTIALS (Configure here or in Script Properties)
+  SMS_API_URL: "",     // e.g. "https://www.fast2sms.com/dev/bulkV2" or your SMS gateway URL
+  SMS_AUTH_KEY: "",    // Your SMS Provider API Key
+  SMS_SENDER_ID: "RJVARI", // Sender ID (Approval based)
+
+  // 29 COLUMNS DEFINITION
   COLUMNS: [
     "Order ID",              // Col 1
     "Timestamp",             // Col 2
@@ -65,253 +89,344 @@ const BACKEND_CONFIG = {
 };
 
 // ============================================================================
-// 2. doPost: ORDER SUBMISSION HANDLER
+// 1. doPost(e) - Web App POST Handler
 // ============================================================================
 function doPost(e) {
   try {
-    const rawData = e.postData ? e.postData.contents : "{}";
-    const data = JSON.parse(rawData);
+    const raw = e && e.postData ? e.postData.contents : "{}";
+    const data = JSON.parse(raw);
+    const action = data.action;
 
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
-    let sheet = ss.getSheetByName(BACKEND_CONFIG.SHEET_NAME);
-    if (!sheet) {
-      sheet = ss.getSheets()[0];
+    if (action === "createOrder") {
+      return createOrder(data);
+    } else if (action === "submitPayment") {
+      return submitPayment(data);
+    } else {
+      return jsonResponse({
+        success: false,
+        error: "Invalid or missing action"
+      });
+    }
+  } catch (err) {
+    return jsonResponse({
+      success: false,
+      error: "Request parsing failed: " + err.toString()
+    });
+  }
+}
+
+// ============================================================================
+// 2. doGet(e) - Web App GET Handler (Status / Tracking / Health)
+// ============================================================================
+function doGet(e) {
+  try {
+    const params = e && e.parameter ? e.parameter : {};
+    const action = params.action;
+
+    if (action === "trackOrder") {
+      const orderId = (params.orderId || "").trim().toUpperCase();
+      if (!orderId) {
+        return jsonResponse({ success: false, error: "Order ID required" });
+      }
+
+      const sheet = getSheet();
+      const rowIndex = findOrderRow(sheet, orderId);
+
+      if (rowIndex === -1) {
+        return jsonResponse({ success: false, error: "Order ID not found" });
+      }
+
+      const rowValues = sheet.getRange(rowIndex, 1, 1, 29).getValues()[0];
+      return jsonResponse({
+        success: true,
+        order: {
+          orderId: rowValues[0],
+          timestamp: rowValues[1],
+          customerName: rowValues[2],
+          mobileNumber: rowValues[3],
+          bottleSize: rowValues[13],
+          quantity: rowValues[14],
+          totalOrderAmount: rowValues[19],
+          paymentRequired: rowValues[20],
+          paymentStatus: rowValues[21],
+          paymentId: rowValues[22],
+          orderStatus: rowValues[23],
+          deliveryStatus: rowValues[24],
+          expectedDelivery: rowValues[26]
+        }
+      });
     }
 
-    // Ensure headers exist
-    if (sheet.getLastRow() === 0) {
-      sheet.appendRow(BACKEND_CONFIG.COLUMNS);
+    return jsonResponse({
+      status: "active",
+      brand: SCRIPT_CONFIG.BRAND_NAME,
+      service: "Packaged Drinking Water Ordering Backend"
+    });
+  } catch (err) {
+    return jsonResponse({ success: false, error: err.toString() });
+  }
+}
+
+// ============================================================================
+// 3. createOrder(data) - Immediate Google Sheet Entry
+// ============================================================================
+function createOrder(data) {
+  try {
+    const sheet = getSheet();
+
+    // Validate required fields
+    if (!data.customerName || !data.mobileNumber || !data.fullAddress || !data.city || !data.pinCode) {
+      return jsonResponse({
+        success: false,
+        error: "Missing required customer or address fields."
+      });
     }
 
-    // Prepare 29 Columns Row
-    const orderId = data.orderId || data["Order ID"] || generateBackendOrderId();
+    const bottleSize = (data.bottleSize === "200ml") ? "200ml" : "1 Liter";
+    const quantity = Math.max(1, parseInt(data.quantity, 10) || 1);
+
+    // Backend calculates price (Never trust frontend price)
+    const pricePerBottle = getBottlePrice(bottleSize);
+    const subtotal = quantity * pricePerBottle;
+    const deliveryCharge = 0; // FREE
+    const discount = 0;
+    const totalOrderAmount = subtotal + deliveryCharge - discount;
+
+    const orderId = createOrderId();
     const now = new Date();
-    const timestamp = data.timestamp || data["Timestamp"] || now.toISOString();
-    const orderDate = data.orderDate || data["Order Date"] || Utilities.formatDate(now, "Asia/Kolkata", "dd/MM/yyyy");
+    const timestamp = Utilities.formatDate(now, "Asia/Kolkata", "yyyy-MM-dd'T'HH:mm:ss'Z'");
+    const orderDate = Utilities.formatDate(now, "Asia/Kolkata", "dd/MM/yyyy");
 
+    // Exact 29 Columns Row Assembly
     const row = [
-      orderId,                                                                      // 1. Order ID
-      timestamp,                                                                    // 2. Timestamp
-      data.customerName || data["Customer Name"] || "",                             // 3. Customer Name
-      data.mobileNumber || data["Mobile Number"] || "",                             // 4. Mobile Number
-      data.alternateNumber || data["Alternate Number"] || "N/A",                   // 5. Alternate Number
-      data.fullAddress || data["Full Address"] || "",                               // 6. Full Address
-      data.villageArea || data["Village/Area"] || "N/A",                            // 7. Village/Area
-      data.city || data["City"] || "",                                              // 8. City
-      data.district || data["District"] || "",                                      // 9. District
-      data.state || data["State"] || "Rajasthan",                                   // 10. State
-      data.pincode || data["PIN Code"] || "",                                       // 11. PIN Code
-      data.product || data["Product"] || "RAJVAARI Drinking Water",                 // 12. Product
-      data.brand || data["Brand"] || "RAJVAARI",                                    // 13. Brand
-      data.bottleSize || data["Bottle Size"] || "1 Liter",                          // 14. Bottle Size
-      Number(data.quantity || data["Quantity"] || 1),                               // 15. Quantity
-      Number(data.pricePerBottle || data["Price Per Bottle"] || 20),                // 16. Price Per Bottle
-      Number(data.subtotal || data["Subtotal"] || 20),                              // 17. Subtotal
-      Number(data.deliveryCharge || data["Delivery Charge"] || 0),                  // 18. Delivery Charge
-      Number(data.discount || data["Discount"] || 0),                               // 19. Discount
-      Number(data.totalOrderAmount || data["Total Order Amount"] || data.totalAmount || 20), // 20. Total Order Amount
-      1,                                                                            // 21. Payment Required (Test: ₹1)
-      "PENDING",                                                                    // 22. Payment Status
-      "",                                                                           // 23. Payment ID
-      "PENDING",                                                                    // 24. Order Status
-      "PENDING",                                                                    // 25. Delivery Status
-      orderDate,                                                                    // 26. Order Date
-      "Pending confirmation",                                                       // 27. Expected Delivery
-      "PENDING",                                                                    // 28. Customer Message Status
-      data.notes || data["Notes"] || "PhonePe QR payment verification pending"     // 29. Notes
+      orderId,                                          // 1. Order ID
+      timestamp,                                        // 2. Timestamp
+      String(data.customerName).trim(),                 // 3. Customer Name
+      String(data.mobileNumber).trim(),                 // 4. Mobile Number
+      String(data.alternateNumber || "N/A").trim(),     // 5. Alternate Number
+      String(data.fullAddress).trim(),                  // 6. Full Address
+      String(data.villageArea || "N/A").trim(),         // 7. Village/Area
+      String(data.city).trim(),                         // 8. City
+      String(data.district || "").trim(),               // 9. District
+      String(data.state || "Rajasthan").trim(),         // 10. State
+      String(data.pinCode).trim(),                      // 11. PIN Code
+      SCRIPT_CONFIG.PRODUCT_NAME,                       // 12. Product
+      SCRIPT_CONFIG.BRAND_NAME,                         // 13. Brand
+      bottleSize,                                       // 14. Bottle Size
+      quantity,                                         // 15. Quantity
+      pricePerBottle,                                   // 16. Price Per Bottle
+      subtotal,                                         // 17. Subtotal
+      deliveryCharge,                                   // 18. Delivery Charge
+      discount,                                         // 19. Discount
+      totalOrderAmount,                                 // 20. Total Order Amount
+      1,                                                // 21. Payment Required (Test: ₹1)
+      "PENDING",                                        // 22. Payment Status
+      "",                                               // 23. Payment ID (empty initially)
+      "PENDING",                                        // 24. Order Status
+      "PENDING",                                        // 25. Delivery Status
+      orderDate,                                        // 26. Order Date
+      "Pending confirmation",                           // 27. Expected Delivery
+      "PENDING",                                        // 28. Customer Message Status
+      String(data.notes || "Order created. Verification payment pending.") // 29. Notes
     ];
 
     sheet.appendRow(row);
 
-    return ContentService.createTextOutput(JSON.stringify({
+    return jsonResponse({
       success: true,
+      message: "Order created successfully",
       orderId: orderId,
-      message: "Order recorded successfully in Google Sheet"
-    })).setMimeType(ContentService.MimeType.JSON);
-
-  } catch (error) {
-    return ContentService.createTextOutput(JSON.stringify({
+      paymentRequired: 1,
+      paymentStatus: "PENDING",
+      orderStatus: "PENDING"
+    });
+  } catch (err) {
+    return jsonResponse({
       success: false,
-      error: error.toString()
-    })).setMimeType(ContentService.MimeType.JSON);
+      error: "Order creation failed: " + err.toString()
+    });
   }
 }
 
 // ============================================================================
-// 3. doGet: ORDER TRACKING QUERY
+// 4. submitPayment(data) - Save UTR / Transaction ID (Status remains PENDING)
 // ============================================================================
-function doGet(e) {
+function submitPayment(data) {
   try {
-    const params = e.parameter || {};
-    const action = params.action;
-    const searchOrderId = (params.orderId || "").trim().toUpperCase();
-    const searchMobile = (params.mobileNumber || "").trim();
+    const sheet = getSheet();
+    const orderId = (data.orderId || "").trim().toUpperCase();
+    const paymentId = (data.paymentId || "").trim();
 
-    if (action === "trackOrder" && searchOrderId && searchMobile) {
-      const ss = SpreadsheetApp.getActiveSpreadsheet();
-      let sheet = ss.getSheetByName(BACKEND_CONFIG.SHEET_NAME) || ss.getSheets()[0];
-      const data = sheet.getDataRange().getValues();
-
-      if (data.length <= 1) {
-        return ContentService.createTextOutput(JSON.stringify({
-          success: false,
-          error: "No orders found in sheet"
-        })).setMimeType(ContentService.MimeType.JSON);
-      }
-
-      for (let i = 1; i < data.length; i++) {
-        const row = data[i];
-        const rowOrderId = String(row[0]).trim().toUpperCase();
-        const rowMobile = String(row[3]).trim();
-
-        if (rowOrderId === searchOrderId && rowMobile === searchMobile) {
-          const orderObj = {
-            orderId: row[0],
-            customerName: row[2],
-            mobileNumber: row[3],
-            product: row[11],
-            bottleSize: row[13],
-            quantity: row[14],
-            totalOrderAmount: row[19],
-            paymentRequired: row[20],
-            paymentStatus: row[21],
-            paymentId: row[22],
-            orderStatus: row[23],
-            deliveryStatus: row[24],
-            expectedDelivery: row[26]
-          };
-
-          return ContentService.createTextOutput(JSON.stringify({
-            success: true,
-            order: orderObj
-          })).setMimeType(ContentService.MimeType.JSON);
-        }
-      }
-
-      return ContentService.createTextOutput(JSON.stringify({
+    if (!orderId || !paymentId) {
+      return jsonResponse({
         success: false,
-        error: "Order not found"
-      })).setMimeType(ContentService.MimeType.JSON);
+        error: "Order ID and Transaction/UTR Number are required."
+      });
     }
 
-    return ContentService.createTextOutput(JSON.stringify({
-      status: "active",
-      brand: "RAJVAARI",
-      service: "Packaged Drinking Water Ordering API"
-    })).setMimeType(ContentService.MimeType.JSON);
+    const rowIndex = findOrderRow(sheet, orderId);
+    if (rowIndex === -1) {
+      return jsonResponse({
+        success: false,
+        error: "Order ID not found: " + orderId
+      });
+    }
 
-  } catch (error) {
-    return ContentService.createTextOutput(JSON.stringify({
+    // Save paymentId into Column 23 (Payment ID)
+    sheet.getRange(rowIndex, 23).setValue(paymentId);
+
+    // Payment Status MUST remain PENDING
+    sheet.getRange(rowIndex, 22).setValue("PENDING");
+
+    // Append to Notes
+    const currentNotes = String(sheet.getRange(rowIndex, 29).getValue() || "");
+    const updatedNotes = currentNotes ? currentNotes + " | UTR submitted: " + paymentId : "UTR submitted: " + paymentId;
+    sheet.getRange(rowIndex, 29).setValue(updatedNotes);
+
+    return jsonResponse({
+      success: true,
+      message: "Payment details submitted. Payment verification pending."
+    });
+  } catch (err) {
+    return jsonResponse({
       success: false,
-      error: error.toString()
-    })).setMimeType(ContentService.MimeType.JSON);
+      error: "Payment submission failed: " + err.toString()
+    });
   }
 }
 
 // ============================================================================
-// 4. onEdit: AUTOMATIC ADMIN ACTION WHEN PAYMENT IS MARKED "PAID"
+// 5. checkPaymentStatus() - Process Admin YES/NO & Expired Orders
 // ============================================================================
-function onEdit(e) {
-  if (!e || !e.range) return;
+function checkPaymentStatus() {
+  const sheet = getSheet();
+  const lastRow = sheet.getLastRow();
+  if (lastRow <= 1) return;
 
-  const range = e.range;
-  const sheet = range.getSheet();
-  const row = range.getRow();
-  const col = range.getColumn();
+  const data = sheet.getRange(2, 1, lastRow - 1, 29).getValues();
 
-  // Ignore header row
-  if (row <= 1) return;
+  for (let i = 0; i < data.length; i++) {
+    const rowIndex = i + 2;
+    const row = data[i];
 
-  // Column 22 is "Payment Status"
-  if (col === 22) {
-    const newStatus = String(range.getValue()).trim().toUpperCase();
+    const paymentStatus = String(row[21]).trim().toUpperCase(); // Col 22
+    const orderStatus = String(row[23]).trim().toUpperCase();   // Col 24
+    const msgStatus = String(row[27]).trim().toUpperCase();     // Col 28
 
-    if (newStatus === "PAID") {
-      processPaymentConfirmation(sheet, row);
+    // Case 1: Admin manually changed to YES
+    if (paymentStatus === "YES") {
+      if (orderStatus !== "CONFIRMED" || msgStatus !== "PAYMENT_CONFIRMATION_SENT") {
+        processConfirmedPayment(sheet, rowIndex, row);
+      }
+    }
+    // Case 2: Admin manually changed to NO
+    else if (paymentStatus === "NO") {
+      if (orderStatus !== "CANCELLED") {
+        processRejectedPayment(sheet, rowIndex, row);
+      }
     }
   }
+
+  // Also check for 24-hour timeout on PENDING orders
+  cancelExpiredOrders();
 }
 
-/**
- * Handles the PENDING -> PAID transition:
- * 1. Order Status -> CONFIRMED
- * 2. Delivery Status -> PROCESSING
- * 3. Expected Delivery -> Confirmation time + 24 hours
- * 4. SMS sent to customer (Duplicate SMS prevented via Customer Message Status)
- */
-function processPaymentConfirmation(sheet, row) {
-  // Read existing Customer Message Status (Column 28)
-  const currentMsgStatus = String(sheet.getRange(row, 28).getValue()).trim().toUpperCase();
+// ============================================================================
+// 6. processConfirmedPayment(sheet, rowIndex, rowData)
+// ============================================================================
+function processConfirmedPayment(sheet, rowIndex, rowData) {
+  // DUPLICATE SMS PROTECTION
+  const currentMsgStatus = String(sheet.getRange(rowIndex, 28).getValue()).trim().toUpperCase();
+  const currentOrderStatus = String(sheet.getRange(rowIndex, 24).getValue()).trim().toUpperCase();
 
-  // PART 19: DUPLICATE PROTECTION - DO NOT SEND AGAIN IF ALREADY SENT
-  if (currentMsgStatus === "PAYMENT_CONFIRMATION_SENT") {
-    Logger.log("SMS already sent for row " + row + ". Skipping duplicate dispatch.");
-    return;
+  if (currentOrderStatus === "CONFIRMED" && currentMsgStatus === "PAYMENT_CONFIRMATION_SENT") {
+    return; // Already processed, prevent duplicate SMS
   }
 
-  // 1. Order Status (Col 24) -> CONFIRMED
-  sheet.getRange(row, 24).setValue("CONFIRMED");
+  // 1. Payment Status = YES
+  sheet.getRange(rowIndex, 22).setValue("YES");
 
-  // 2. Delivery Status (Col 25) -> PROCESSING
-  sheet.getRange(row, 25).setValue("PROCESSING");
+  // 2. Order Status = CONFIRMED
+  sheet.getRange(rowIndex, 24).setValue("CONFIRMED");
 
-  // 3. Expected Delivery (Col 27) -> +24 Hours from now
-  const confirmTime = new Date();
-  const deliveryTime = new Date(confirmTime.getTime() + (24 * 60 * 60 * 1000));
+  // 3. Delivery Status = PROCESSING
+  sheet.getRange(rowIndex, 25).setValue("PROCESSING");
+
+  // 4. Expected Delivery = current confirmation time + 24 hours
+  const now = new Date();
+  const deliveryTime = new Date(now.getTime() + (24 * 60 * 60 * 1000));
   const deliveryFormatted = Utilities.formatDate(deliveryTime, "Asia/Kolkata", "dd/MM/yyyy, hh:mm a");
-  sheet.getRange(row, 27).setValue(deliveryFormatted + " (Within 24 Hours)");
+  sheet.getRange(rowIndex, 27).setValue(deliveryFormatted + " (Within 24 Hours)");
 
-  // Read Customer Details for SMS
-  const orderId = sheet.getRange(row, 1).getValue();
-  const customerName = sheet.getRange(row, 3).getValue();
-  const mobileNumber = sheet.getRange(row, 4).getValue();
+  // Read Customer Details for SMS (Col 1 = Order ID, Col 4 = Mobile)
+  const orderId = sheet.getRange(rowIndex, 1).getValue();
+  const customerMobile = sheet.getRange(rowIndex, 4).getValue();
 
-  // PART 17 & 18: SEND SMS OR RECORD LOG
-  const smsMessage = "RAJVAARI: नमस्ते " + customerName + ", आपका payment सफलतापूर्वक verify हो गया है। आपका Order ID " + orderId + " है। आपका RAJVAARI water order confirmed है और expected delivery 24 घंटे के अंदर (" + deliveryFormatted + ") होगी। धन्यवाद।";
+  const orderData = {
+    orderId: orderId,
+    mobileNumber: customerMobile,
+    expectedDelivery: deliveryFormatted
+  };
 
-  const smsResult = dispatchCustomerSms(mobileNumber, smsMessage);
+  // 5. Send Confirmation SMS
+  const smsResult = sendConfirmationSMS(orderData);
 
   if (smsResult.success) {
-    sheet.getRange(row, 28).setValue("PAYMENT_CONFIRMATION_SENT");
-    const existingNotes = sheet.getRange(row, 29).getValue();
-    sheet.getRange(row, 29).setValue((existingNotes ? existingNotes + " | " : "") + "Payment verified by Admin. Confirmation SMS sent to " + mobileNumber);
+    sheet.getRange(rowIndex, 28).setValue("PAYMENT_CONFIRMATION_SENT");
+    const notes = String(sheet.getRange(rowIndex, 29).getValue() || "");
+    sheet.getRange(rowIndex, 29).setValue((notes ? notes + " | " : "") + "Payment verified by Admin. Confirmation SMS sent.");
   } else {
-    // If SMS provider not yet connected or failed
-    sheet.getRange(row, 28).setValue("PAYMENT_CONFIRMATION_SENT"); // Marked sent to prevent loop
-    const existingNotes = sheet.getRange(row, 29).getValue();
-    sheet.getRange(row, 29).setValue((existingNotes ? existingNotes + " | " : "") + "Admin confirmed payment. SMS status: " + smsResult.reason);
+    // If provider is not configured, still mark CONFIRMED without faking SMS
+    sheet.getRange(rowIndex, 28).setValue(smsResult.code || "SMS_NOT_CONFIGURED");
+    const notes = String(sheet.getRange(rowIndex, 29).getValue() || "");
+    sheet.getRange(rowIndex, 29).setValue((notes ? notes + " | " : "") + (smsResult.reason || "SMS provider not configured"));
   }
 }
 
-/**
- * Dispatches SMS using configured SMS Gateway.
- * If credentials are not set, reports "SMS not configured" without faking it.
- */
-function dispatchCustomerSms(mobile, message) {
-  const provider = BACKEND_CONFIG.SMS.PROVIDER;
-  const apiKey = BACKEND_CONFIG.SMS.API_KEY;
-  const apiUrl = BACKEND_CONFIG.SMS.API_URL;
+// ============================================================================
+// 7. processRejectedPayment(sheet, rowIndex, rowData)
+// ============================================================================
+function processRejectedPayment(sheet, rowIndex, rowData) {
+  sheet.getRange(rowIndex, 22).setValue("NO");
+  sheet.getRange(rowIndex, 24).setValue("CANCELLED");
+  sheet.getRange(rowIndex, 25).setValue("CANCELLED");
+  sheet.getRange(rowIndex, 28).setValue("PAYMENT_REJECTED");
 
-  if (!provider || !apiKey || !apiUrl) {
-    Logger.log("SMS Provider credentials not configured in BACKEND_CONFIG.SMS");
+  const notes = String(sheet.getRange(rowIndex, 29).getValue() || "");
+  sheet.getRange(rowIndex, 29).setValue((notes ? notes + " | " : "") + "Payment not verified");
+}
+
+// ============================================================================
+// 8. sendConfirmationSMS(orderData)
+// ============================================================================
+function sendConfirmationSMS(orderData) {
+  const apiUrl = SCRIPT_CONFIG.SMS_API_URL;
+  const authKey = SCRIPT_CONFIG.SMS_AUTH_KEY;
+  const senderId = SCRIPT_CONFIG.SMS_SENDER_ID;
+
+  if (!apiUrl || !authKey) {
     return {
       success: false,
-      reason: "SMS not configured (Provider credentials required)"
+      code: "SMS_NOT_CONFIGURED",
+      reason: "SMS provider not configured"
     };
   }
 
   try {
-    // Standard SMS Provider HTTP Call Example
+    const mobile = String(orderData.mobileNumber).trim();
+    const orderId = orderData.orderId;
+    const smsMessage = `RAJVAARI: आपका payment verify हो गया है। Order ID: ${orderId} confirmed है। आपकी delivery 24 घंटे के अंदर होगी। धन्यवाद।`;
+
     const payload = {
-      sender_id: BACKEND_CONFIG.SMS.SENDER_ID,
-      message: message,
+      sender_id: senderId,
+      message: smsMessage,
       numbers: mobile
     };
 
     const options = {
       method: "post",
       headers: {
-        "authorization": apiKey,
+        "authorization": authKey,
         "Content-Type": "application/json"
       },
       payload: JSON.stringify(payload),
@@ -324,16 +439,185 @@ function dispatchCustomerSms(mobile, message) {
     if (code >= 200 && code < 300) {
       return { success: true };
     } else {
-      return { success: false, reason: "SMS API HTTP Error " + code + ": " + response.getContentText() };
+      return {
+        success: false,
+        code: "SMS_FAILED",
+        reason: "SMS API HTTP Error " + code
+      };
     }
   } catch (err) {
-    return { success: false, reason: "SMS Exception: " + err.toString() };
+    return {
+      success: false,
+      code: "SMS_FAILED",
+      reason: "SMS Exception: " + err.toString()
+    };
   }
 }
 
-function generateBackendOrderId() {
+// ============================================================================
+// 9. cancelExpiredOrders() - 24 Hours Timeout for PENDING Orders
+// ============================================================================
+function cancelExpiredOrders() {
+  const sheet = getSheet();
+  const lastRow = sheet.getLastRow();
+  if (lastRow <= 1) return;
+
+  const data = sheet.getRange(2, 1, lastRow - 1, 29).getValues();
+  const now = new Date().getTime();
+  const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000;
+
+  for (let i = 0; i < data.length; i++) {
+    const row = data[i];
+    const rowIndex = i + 2;
+
+    const paymentStatus = String(row[21]).trim().toUpperCase();
+    const orderStatus = String(row[23]).trim().toUpperCase();
+    const timestampStr = row[1];
+
+    if (paymentStatus === "PENDING" && orderStatus === "PENDING") {
+      let orderTime = new Date(timestampStr).getTime();
+      if (isNaN(orderTime)) continue;
+
+      if ((now - orderTime) > TWENTY_FOUR_HOURS_MS) {
+        // Cancel order after 24 hours
+        sheet.getRange(rowIndex, 22).setValue("NO");
+        sheet.getRange(rowIndex, 24).setValue("CANCELLED");
+        sheet.getRange(rowIndex, 25).setValue("CANCELLED");
+        sheet.getRange(rowIndex, 28).setValue("PAYMENT_EXPIRED");
+
+        const notes = String(row[28] || "");
+        sheet.getRange(rowIndex, 29).setValue((notes ? notes + " | " : "") + "Payment not received within 24 hours");
+      }
+    }
+  }
+}
+
+// ============================================================================
+// 10. findOrderRow(sheet, orderId)
+// ============================================================================
+function findOrderRow(sheet, orderId) {
+  const lastRow = sheet.getLastRow();
+  if (lastRow <= 1) return -1;
+
+  const target = String(orderId).trim().toUpperCase();
+  const ids = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+
+  for (let i = 0; i < ids.length; i++) {
+    if (String(ids[i][0]).trim().toUpperCase() === target) {
+      return i + 2; // Row number in spreadsheet
+    }
+  }
+  return -1;
+}
+
+// ============================================================================
+// 11. getSheet()
+// ============================================================================
+function getSheet() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName(SCRIPT_CONFIG.SHEET_NAME);
+
+  if (!sheet) {
+    sheet = ss.getSheets()[0];
+  }
+
+  // Ensure header row exists
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow(SCRIPT_CONFIG.COLUMNS);
+  }
+
+  return sheet;
+}
+
+// ============================================================================
+// 12. getBottlePrice(bottleSize) - Backend Pricing Authority
+// ============================================================================
+function getBottlePrice(bottleSize) {
+  const size = String(bottleSize).toLowerCase();
+  if (size.indexOf("200") !== -1) {
+    return 10; // ₹10 for 200ml
+  }
+  return 20; // ₹20 for 1 Liter
+}
+
+// ============================================================================
+// 13. createOrderId()
+// ============================================================================
+function createOrderId() {
   const today = new Date();
   const dateStr = Utilities.formatDate(today, "Asia/Kolkata", "yyyyMMdd");
   const rand = Math.floor(1000 + Math.random() * 9000);
-  return "RAJ-" + dateStr + "-" + rand;
+  return `RAJ-${dateStr}-${rand}`;
+}
+
+// ============================================================================
+// 14. jsonResponse(obj)
+// ============================================================================
+function jsonResponse(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+// ============================================================================
+// 15. setupTriggers() - Installable Edit Trigger & Time-driven Trigger
+// ============================================================================
+function setupTriggers() {
+  const triggers = ScriptApp.getProjectTriggers();
+  let hasEditTrigger = false;
+  let hasTimeTrigger = false;
+
+  for (let i = 0; i < triggers.length; i++) {
+    const handler = triggers[i].getHandlerFunction();
+    if (handler === "onEditInstalled") {
+      hasEditTrigger = true;
+    }
+    if (handler === "checkPaymentStatus") {
+      hasTimeTrigger = true;
+    }
+  }
+
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+
+  if (!hasEditTrigger) {
+    ScriptApp.newTrigger("onEditInstalled")
+      .forSpreadsheet(ss)
+      .onEdit()
+      .create();
+    Logger.log("Created installable onEdit trigger.");
+  }
+
+  if (!hasTimeTrigger) {
+    ScriptApp.newTrigger("checkPaymentStatus")
+      .timeBased()
+      .everyHours(1)
+      .create();
+    Logger.log("Created 1-hour time-driven trigger for checkPaymentStatus.");
+  }
+}
+
+/**
+ * Installable Spreadsheet Edit Trigger Handler
+ */
+function onEditInstalled(e) {
+  if (!e || !e.range) return;
+
+  const range = e.range;
+  const sheet = range.getSheet();
+  const row = range.getRow();
+  const col = range.getColumn();
+
+  if (row <= 1) return; // Header row
+
+  // Column 22 is Payment Status
+  if (col === 22) {
+    const val = String(range.getValue()).trim().toUpperCase();
+
+    if (val === "YES") {
+      const rowData = sheet.getRange(row, 1, 1, 29).getValues()[0];
+      processConfirmedPayment(sheet, row, rowData);
+    } else if (val === "NO") {
+      const rowData = sheet.getRange(row, 1, 1, 29).getValues()[0];
+      processRejectedPayment(sheet, row, rowData);
+    }
+  }
 }
