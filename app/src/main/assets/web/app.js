@@ -5,12 +5,12 @@
  * Brand: RAJVAARI
  * Tagline: "शुद्ध पानी, भरोसे के साथ"
  * Backend: Google Apps Script Web App
+ * Test Payment Mode: ₹1 via UPI ID 9950906310-2@ybl
  * ============================================================================
  */
 
 // ============================================================================
 // 1. GLOBAL BRAND & CONFIGURATION CONSTANTS
-// (Change WhatsApp number, UPI ID, product prices, etc. here)
 // ============================================================================
 const CONFIG = {
     // Exact backend Google Apps Script API URL
@@ -20,24 +20,23 @@ const CONFIG = {
     brandName: "RAJVAARI",
     tagline: "शुद्ध पानी, भरोसे के साथ",
 
-    // WhatsApp Business Contact (format: Country code + Mobile number, without + or spaces)
-    // Edit this to your actual WhatsApp Business number:
+    // WhatsApp Business Contact (Configurable without inventing numbers)
     whatsappNumber: "919876543210",
 
-    // UPI Payment Configuration
-    // Edit this to your registered merchant/business UPI ID:
-    upiId: "rajvaariwater@upi",
-    upiName: "RAJVAARI Packaged Drinking Water",
-    advancePaymentAmount: 2000, // Fixed advance payment requirement: ₹2,000
+    // TEST PAYMENT CONFIGURATION
+    // UPI ID specified: 9950906310-2@ybl
+    upiId: "9950906310-2@ybl",
+    upiName: "RAJVAARI",
+    paymentAmount: 1, // Current test payment amount: ₹1
 
-    // Product Catalog & Pricing Definition (Edit prices and bottle sizes here)
+    // Product Catalog & Pricing Definition
     products: [
         {
             id: "jar_20l",
             name: "RAJVAARI Mineral Water 20L Jar",
             nameHi: "20L मिनरल वाटर जार",
             bottleSize: "20 Litre Jar",
-            price: 80, // Price in INR per unit
+            price: 80,
             icon: "💧",
             badge: "सर्वाधिक लोकप्रिय",
             description: "दैनिक घरेलू एवं कार्यालयीन उपयोग के लिए शुद्ध खनिजों से युक्त।"
@@ -47,7 +46,7 @@ const CONFIG = {
             name: "RAJVAARI Packaged 1L Bottles Box",
             nameHi: "1L बॉटल्स बॉक्स (12 बोतल)",
             bottleSize: "1 Litre Pack",
-            price: 240, // 12 bottles per box
+            price: 240,
             icon: "🍾",
             badge: "प्रीमियम बॉक्स",
             description: "सफर, मीटिंग और सम्मेलनों के लिए सुविधाजनक 1 लीटर बोतल पैक।"
@@ -57,7 +56,7 @@ const CONFIG = {
             name: "RAJVAARI Packaged 500ml Bottles Box",
             nameHi: "500ml बॉटल्स बॉक्स (24 बोतल)",
             bottleSize: "500 ml Pack",
-            price: 260, // 24 bottles per box
+            price: 260,
             icon: "🥤",
             badge: "इवेंट स्पेशल",
             description: "विवाह समारोहों, कार्यक्रमों एवं पार्टियों के लिए कॉम्पैक्ट साइज।"
@@ -67,7 +66,7 @@ const CONFIG = {
             name: "RAJVAARI Packaged 250ml Bottles Box",
             nameHi: "250ml मिनी बॉक्स (48 बोतल)",
             bottleSize: "250 ml Pack",
-            price: 280, // 48 mini bottles per box
+            price: 280,
             icon: "✨",
             badge: "मिनी पैक",
             description: "अतिथियों के स्वागत एवं डाइनिंग टेबल उपयोग के लिए स्वच्छ मिनी बोतलें।"
@@ -86,13 +85,14 @@ const CONFIG = {
 
     // Delivery settings
     freeDeliveryThreshold: 500,
-    deliveryFee: 0 // Free delivery for standard local dispatch
+    deliveryFee: 0
 };
 
 // ============================================================================
-// 2. STATE MANAGEMENT
+// 2. STATE MANAGEMENT & COUNTDOWN
 // ============================================================================
 let currentOrderData = null;
+let paymentCountdownInterval = null;
 
 // ============================================================================
 // 3. INITIALIZATION & DOM CACHE
@@ -160,7 +160,6 @@ function selectProduct(prod) {
     if (productSelect) productSelect.value = prod.name;
     if (bottleSizeSelect) bottleSizeSelect.value = prod.bottleSize;
 
-    // Update selected styles on cards
     document.querySelectorAll(".product-card").forEach(c => {
         const match = c.dataset.productName === prod.name;
         c.classList.toggle("selected", match);
@@ -185,7 +184,7 @@ function calculateOrderTotals() {
     const unitPrice = product ? product.price : 80;
 
     const subtotal = unitPrice * qty;
-    const discount = subtotal >= 1000 ? Math.round(subtotal * 0.05) : 0; // 5% discount on bulk orders >= ₹1,000
+    const discount = subtotal >= 1000 ? Math.round(subtotal * 0.05) : 0;
     const deliveryCharge = CONFIG.deliveryFee;
     const total = Math.max(0, subtotal - discount + deliveryCharge);
 
@@ -232,7 +231,6 @@ function setupEventListeners() {
             if (prod && bottleSizeSelect) {
                 bottleSizeSelect.value = prod.bottleSize;
             }
-            // Sync product gallery
             document.querySelectorAll(".product-card").forEach(c => {
                 const match = c.dataset.productName === productSelect.value;
                 c.classList.toggle("selected", match);
@@ -293,7 +291,6 @@ function setupEventListeners() {
 function validateForm() {
     let isValid = true;
 
-    // Helper to set error
     const setError = (fieldId, errorId, message) => {
         const input = document.getElementById(fieldId);
         const err = document.getElementById(errorId);
@@ -305,7 +302,6 @@ function validateForm() {
         isValid = false;
     };
 
-    // Helper to clear error
     const clearError = (fieldId, errorId) => {
         const input = document.getElementById(fieldId);
         const err = document.getElementById(errorId);
@@ -316,41 +312,39 @@ function validateForm() {
         }
     };
 
-    // 1. Customer Name
+    // 1. Name required
     const nameVal = document.getElementById("customerName")?.value.trim() || "";
     if (!nameVal) {
-        setError("customerName", "nameError", "कृपया अपना पूरा नाम दर्ज करें (Customer name is required)");
+        setError("customerName", "nameError", "कृपया ग्राहक का नाम दर्ज करें (Name required)");
     } else if (nameVal.length < 2) {
-        setError("customerName", "nameError", "कृपया सही नाम दर्ज करें (कम से कम 2 अक्षर)");
+        setError("customerName", "nameError", "कृपया सही नाम दर्ज करें");
     } else {
         clearError("customerName", "nameError");
     }
 
-    // 2. Mobile Number (Valid Indian 10 digits)
+    // 2. Indian 10-digit mobile number
     const mobileVal = document.getElementById("mobileNumber")?.value.trim() || "";
     const indianMobileRegex = /^[6-9]\d{9}$/;
     if (!mobileVal) {
-        setError("mobileNumber", "mobileError", "कृपया अपना 10 अंकों का मोबाइल नंबर दर्ज करें");
+        setError("mobileNumber", "mobileError", "कृपया 10 अंकों का मोबाइल नंबर दर्ज करें");
     } else if (!indianMobileRegex.test(mobileVal)) {
-        setError("mobileNumber", "mobileError", "कृपया वैध 10 अंकों का भारतीय मोबाइल नंबर दर्ज करें (6, 7, 8 या 9 से शुरू)");
+        setError("mobileNumber", "mobileError", "कृपया वैध 10 अंकों का भारतीय मोबाइल नंबर दर्ज करें");
     } else {
         clearError("mobileNumber", "mobileError");
     }
 
-    // 3. Alternate Mobile Number (Optional, but if given must be 10 digits)
+    // 3. Alternate Mobile Number (optional)
     const altMobileVal = document.getElementById("alternateMobile")?.value.trim() || "";
     if (altMobileVal && !indianMobileRegex.test(altMobileVal)) {
-        setError("alternateMobile", "altMobileError", "वैकल्पिक नंबर भी 10 अंकों का वैध मोबाइल नंबर होना चाहिए");
+        setError("alternateMobile", "altMobileError", "वैकल्पिक नंबर भी वैध 10 अंकों का मोबाइल नंबर होना चाहिए");
     } else {
         clearError("alternateMobile", "altMobileError");
     }
 
-    // 4. Full Address
+    // 4. Address required
     const addressVal = document.getElementById("fullAddress")?.value.trim() || "";
     if (!addressVal) {
-        setError("fullAddress", "addressError", "कृपया डिलीवरी का पूरा पता दर्ज करें");
-    } else if (addressVal.length < 5) {
-        setError("fullAddress", "addressError", "कृपया पर्याप्त पता दर्ज करें (मकान नं., गली/सड़क)");
+        setError("fullAddress", "addressError", "कृपया पूरा पता दर्ज करें (Address required)");
     } else {
         clearError("fullAddress", "addressError");
     }
@@ -358,7 +352,7 @@ function validateForm() {
     // 5. Village / Area
     const villageVal = document.getElementById("villageArea")?.value.trim() || "";
     if (!villageVal) {
-        setError("villageArea", "villageAreaError", "कृपया गांव, कॉलोनी अथवा इलाका दर्ज करें");
+        setError("villageArea", "villageAreaError", "कृपया गांव अथवा इलाका दर्ज करें");
     } else {
         clearError("villageArea", "villageAreaError");
     }
@@ -387,7 +381,7 @@ function validateForm() {
         clearError("state", "stateError");
     }
 
-    // 9. PIN Code (6 digits)
+    // 9. PIN code 6 digits
     const pincodeVal = document.getElementById("pincode")?.value.trim() || "";
     const pincodeRegex = /^\d{6}$/;
     if (!pincodeVal) {
@@ -401,7 +395,7 @@ function validateForm() {
     // 10. Product
     const prodVal = document.getElementById("productSelect")?.value || "";
     if (!prodVal) {
-        setError("productSelect", "productError", "कृपया प्रॉडक्ट का चयन करें");
+        setError("productSelect", "productError", "कृपया प्रॉडक्ट चुनें");
     } else {
         clearError("productSelect", "productError");
     }
@@ -414,10 +408,10 @@ function validateForm() {
         clearError("bottleSize", "bottleSizeError");
     }
 
-    // 12. Quantity
+    // 12. Quantity greater than 0
     const qtyVal = parseInt(document.getElementById("quantity")?.value || "0", 10);
     if (!qtyVal || qtyVal <= 0) {
-        setError("quantity", "quantityError", "मात्रा कम से कम 1 होनी चाहिए (Quantity must be greater than 0)");
+        setError("quantity", "quantityError", "मात्रा 0 से अधिक होनी चाहिए (Quantity must be greater than 0)");
     } else {
         clearError("quantity", "quantityError");
     }
@@ -426,7 +420,7 @@ function validateForm() {
 }
 
 // ============================================================================
-// 8. ORDER SUBMISSION TO GOOGLE APPS SCRIPT API
+// 8. ORDER CREATION & GOOGLE APPS SCRIPT API INTEGRATION
 // ============================================================================
 async function handleOrderSubmit(e) {
     e.preventDefault();
@@ -440,15 +434,16 @@ async function handleOrderSubmit(e) {
     const spinner = document.getElementById("submitSpinner");
     const btnText = document.getElementById("submitBtnText");
 
-    // UI Loading state
     if (submitBtn) submitBtn.disabled = true;
     if (spinner) spinner.classList.remove("hidden");
     if (btnText) btnText.textContent = "ऑर्डर दर्ज हो रहा है...";
 
-    // Collect order payload
     const totals = calculateOrderTotals();
+    const orderTimestamp = new Date().toISOString();
+
+    // Order payload sent to Apps Script API using JSON
     const payload = {
-        timestamp: new Date().toISOString(),
+        timestamp: orderTimestamp,
         customerName: document.getElementById("customerName").value.trim(),
         mobileNumber: document.getElementById("mobileNumber").value.trim(),
         alternateMobile: document.getElementById("alternateMobile").value.trim() || "N/A",
@@ -465,17 +460,12 @@ async function handleOrderSubmit(e) {
         deliveryCharge: totals.deliveryCharge,
         discount: totals.discount,
         totalAmount: totals.total,
-        paymentRequired: CONFIG.advancePaymentAmount // Required: ₹2,000
+        paymentRequired: CONFIG.paymentAmount // Current test payment: ₹1
     };
 
     try {
         let apiResponse = null;
 
-        /**
-         * Communicating with the Google Apps Script Web App.
-         * Using Content-Type: 'text/plain;charset=utf-8' prevents CORS preflight OPTIONS
-         * which Google Apps Script web apps do not handle natively, ensuring successful POST!
-         */
         try {
             const response = await fetch(CONFIG.API_URL, {
                 method: "POST",
@@ -489,41 +479,62 @@ async function handleOrderSubmit(e) {
             try {
                 apiResponse = JSON.parse(textData);
             } catch (parseErr) {
-                console.warn("Apps Script returned non-JSON text:", textData);
+                console.warn("Apps Script non-JSON response:", textData);
                 apiResponse = {
                     success: true,
-                    message: "Order placed successfully",
-                    orderId: generateFallbackOrderId()
+                    orderId: generateFallbackOrderId(),
+                    paymentRequired: CONFIG.paymentAmount,
+                    paymentStatus: "PENDING",
+                    orderStatus: "PENDING",
+                    upiId: CONFIG.upiId,
+                    upiLink: null
                 };
             }
         } catch (netErr) {
-            console.error("Network call to Apps Script failed, handling fallback:", netErr);
+            console.error("Network call to Apps Script failed, using fallback:", netErr);
             apiResponse = {
                 success: true,
-                message: "ऑर्डर सबमिट किया गया (ऑफलाइन मोड)",
-                orderId: generateFallbackOrderId()
+                orderId: generateFallbackOrderId(),
+                paymentRequired: CONFIG.paymentAmount,
+                paymentStatus: "PENDING",
+                orderStatus: "PENDING",
+                upiId: CONFIG.upiId,
+                upiLink: null
             };
         }
 
-        // Process response
-        const orderId = apiResponse?.orderId || generateFallbackOrderId();
+        // Use the returned values from API:
+        // success, orderId, paymentRequired, paymentStatus, orderStatus, upiId, upiLink
+        const finalOrderId = apiResponse?.orderId || generateFallbackOrderId();
+        const finalPaymentRequired = (apiResponse?.paymentRequired !== undefined && apiResponse?.paymentRequired !== null)
+            ? apiResponse.paymentRequired
+            : CONFIG.paymentAmount;
+        const finalPaymentStatus = apiResponse?.paymentStatus || "PENDING";
+        const finalOrderStatus = apiResponse?.orderStatus || "PENDING";
+        const finalUpiId = apiResponse?.upiId || CONFIG.upiId;
 
-        // Security rule: Never mark payment as PAID from frontend JavaScript!
-        // Payment status must remain PENDING until verified by gateway/webhook.
+        // Dynamic UPI Link using the actual generated Order ID:
+        // upi://pay?pa=9950906310-2@ybl&pn=RAJVAARI&am=1&cu=INR&tn=RAJVAARI Order ID
+        const dynamicUpiLink = apiResponse?.upiLink ||
+            `upi://pay?pa=${finalUpiId}&pn=${encodeURIComponent(CONFIG.upiName)}&am=${finalPaymentRequired}&cu=INR&tn=${encodeURIComponent('RAJVAARI ' + finalOrderId)}`;
+
         currentOrderData = {
             ...payload,
-            orderId: orderId,
-            paymentStatus: "PENDING",
-            orderStatus: "PENDING",
+            orderId: finalOrderId,
+            paymentRequired: finalPaymentRequired,
+            paymentStatus: finalPaymentStatus,
+            orderStatus: finalOrderStatus,
             deliveryStatus: "PENDING",
-            paymentRequired: CONFIG.advancePaymentAmount,
+            upiId: finalUpiId,
+            upiLink: dynamicUpiLink,
+            createdAt: Date.now(),
             expectedDelivery: "पुष्टिकरण के लगभग 24 घंटे बाद (सेवा उपलब्धता के अनुसार)"
         };
 
         renderSuccessPage(currentOrderData);
-        showToast("आपका ऑर्डर सफलतापूर्वक दर्ज हो गया है!");
+        showToast("ऑर्डर सफलतापूर्वक दर्ज हो गया!");
     } catch (error) {
-        console.error("Order processing error:", error);
+        console.error("Order submit exception:", error);
         showToast("ऑर्डर दर्ज करने में समस्या आई। कृपया पुनः प्रयास करें।");
     } finally {
         if (submitBtn) submitBtn.disabled = false;
@@ -542,20 +553,17 @@ function generateFallbackOrderId() {
 }
 
 // ============================================================================
-// 9. SUCCESS PAGE & STATUS DISPLAY
+// 9. SUCCESS PAGE & 24-HOUR COUNTDOWN
 // ============================================================================
 function renderSuccessPage(data) {
-    // Switch views
     const orderView = document.getElementById("orderView");
     const successView = document.getElementById("successView");
 
     if (orderView) orderView.classList.add("hidden");
     if (successView) successView.classList.remove("hidden");
 
-    // Scroll to top
     window.scrollTo({ top: 0, behavior: "smooth" });
 
-    // Populate order details
     const setText = (id, val) => {
         const el = document.getElementById(id);
         if (el) el.textContent = val;
@@ -571,41 +579,125 @@ function renderSuccessPage(data) {
 
     setText("dispProductAndSize", `${data.product} (${data.bottleSize})`);
     setText("dispQuantity", `${data.quantity} यूनिट`);
-    setText("dispPaymentRequired", `₹${data.paymentRequired.toLocaleString("en-IN")}`);
+    setText("dispPaymentRequired", `₹${data.paymentRequired}`);
     setText("dispPaymentStatus", data.paymentStatus);
     setText("dispOrderStatus", data.orderStatus);
     setText("dispDeliveryStatus", data.deliveryStatus);
     setText("dispExpectedDelivery", data.expectedDelivery);
 
-    // Display UPI ID in code container
-    setText("dispUpiIdText", CONFIG.upiId);
+    // Display UPI ID
+    setText("dispUpiIdText", data.upiId || CONFIG.upiId);
+
+    // Start 24-Hour Countdown
+    startPaymentCountdown(data.createdAt || Date.now());
 
     // Generate Dynamic UPI QR Code
     generateUpiQrCode(data);
 
-    // Setup UPI Intent Direct Pay Button
+    // Setup "Pay ₹1" Button
     setupUpiPayButton(data);
 
     // Setup WhatsApp Button
     setupWhatsAppButton(data);
 }
 
+// 24 Hour Countdown Implementation
+function startPaymentCountdown(createdAt) {
+    if (paymentCountdownInterval) clearInterval(paymentCountdownInterval);
+
+    const deadline = createdAt + (24 * 60 * 60 * 1000); // 24 hours from creation
+
+    function updateTimer() {
+        const now = Date.now();
+        const diff = deadline - now;
+
+        const hEl = document.getElementById("cdHours");
+        const mEl = document.getElementById("cdMinutes");
+        const sEl = document.getElementById("cdSeconds");
+
+        if (diff <= 0) {
+            if (hEl) hEl.textContent = "00";
+            if (mEl) mEl.textContent = "00";
+            if (sEl) sEl.textContent = "00";
+
+            // CRITICAL: The frontend must NOT independently mark the order as CANCELLED!
+            // When 24 hours expire, we check the backend. If backend status is CANCELLED, show message.
+            checkBackendOrderStatus(currentOrderData?.orderId);
+            return;
+        }
+
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+        if (hEl) hEl.textContent = String(hours).padStart(2, "0");
+        if (mEl) mEl.textContent = String(minutes).padStart(2, "0");
+        if (sEl) sEl.textContent = String(seconds).padStart(2, "0");
+    }
+
+    updateTimer();
+    paymentCountdownInterval = setInterval(updateTimer, 1000);
+}
+
+// Check backend order status (does NOT mark cancelled on frontend alone)
+async function checkBackendOrderStatus(orderId) {
+    if (!orderId) return;
+    try {
+        const response = await fetch(`${CONFIG.API_URL}?orderId=${encodeURIComponent(orderId)}`);
+        const result = await response.json();
+
+        // When the backend eventually returns CANCELLED status:
+        if (result && result.orderStatus === "CANCELLED") {
+            displayBackendCancelledState();
+        } else if (result && result.paymentStatus === "PAID") {
+            // Updated verified by backend/webhook
+            updateVerifiedState(result);
+        }
+    } catch (e) {
+        // Handled silently
+    }
+}
+
+function displayBackendCancelledState() {
+    const cancelledBox = document.getElementById("orderCancelledBox");
+    const countdownCard = document.getElementById("paymentCountdownCard");
+    const payBox = document.querySelector(".payment-action-box");
+    const orderStatusBadge = document.getElementById("dispOrderStatus");
+
+    if (cancelledBox) cancelledBox.classList.remove("hidden");
+    if (countdownCard) countdownCard.classList.add("hidden");
+    if (payBox) payBox.classList.add("hidden");
+    if (orderStatusBadge) {
+        orderStatusBadge.textContent = "CANCELLED";
+        orderStatusBadge.className = "ind-val badge-cancelled";
+    }
+}
+
+function updateVerifiedState(data) {
+    const paymentStatusBadge = document.getElementById("dispPaymentStatus");
+    const orderStatusBadge = document.getElementById("dispOrderStatus");
+    if (paymentStatusBadge) paymentStatusBadge.textContent = data.paymentStatus || "PAID";
+    if (orderStatusBadge) orderStatusBadge.textContent = data.orderStatus || "CONFIRMED";
+}
+
 // ============================================================================
-// 10. UPI QR CODE & DIRECT PAYMENT INTENT
+// 10. DYNAMIC UPI QR CODE & "Pay ₹1" BUTTON
 // ============================================================================
 function generateUpiQrCode(order) {
     const qrContainer = document.getElementById("upiQrCodeContainer");
     if (!qrContainer) return;
 
-    qrContainer.innerHTML = ""; // Clear existing
+    qrContainer.innerHTML = "";
 
-    // Standard NPCI UPI URI Scheme
-    const upiUri = `upi://pay?pa=${CONFIG.upiId}&pn=${encodeURIComponent(CONFIG.upiName)}&am=${order.paymentRequired}&cu=INR&tn=${encodeURIComponent(`RAJVAARI Water Order ${order.orderId}`)}`;
+    // Exact UPI URI scheme:
+    // pa = 9950906310-2@ybl, pn = RAJVAARI, am = 1, cu = INR, tn = RAJVAARI [Order ID]
+    const upiUri = order.upiLink ||
+        `upi://pay?pa=${order.upiId || CONFIG.upiId}&pn=${encodeURIComponent(CONFIG.upiName)}&am=${order.paymentRequired}&cu=INR&tn=${encodeURIComponent('RAJVAARI ' + order.orderId)}`;
 
     if (window.QRCode) {
         const canvas = document.createElement("canvas");
         QRCode.toCanvas(canvas, upiUri, {
-            width: 180,
+            width: 200,
             margin: 1,
             color: {
                 dark: "#0077B6",
@@ -613,53 +705,60 @@ function generateUpiQrCode(order) {
             }
         }, (error) => {
             if (error) {
-                console.error("QR Code generation error:", error);
-                qrContainer.innerHTML = `<p style="font-size:12px;color:#666;">QR कोड लोड नहीं हो सका</p>`;
+                console.error("QR generation error:", error);
+                renderFallbackQr(qrContainer, upiUri);
             } else {
                 qrContainer.appendChild(canvas);
             }
         });
     } else {
-        const img = document.createElement("img");
-        img.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(upiUri)}`;
-        img.alt = "RAJVAARI UPI Payment QR Code";
-        img.style.width = "180px";
-        img.style.height = "180px";
-        qrContainer.appendChild(img);
+        renderFallbackQr(qrContainer, upiUri);
     }
+}
+
+function renderFallbackQr(container, upiUri) {
+    const img = document.createElement("img");
+    img.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upiUri)}`;
+    img.alt = "RAJVAARI UPI Payment QR Code";
+    img.style.width = "200px";
+    img.style.height = "200px";
+    container.appendChild(img);
 }
 
 function setupUpiPayButton(order) {
     const payBtn = document.getElementById("payUpiActionBtn");
     if (!payBtn) return;
 
-    // Direct UPI Intent URI for mobile devices
-    const upiUri = `upi://pay?pa=${CONFIG.upiId}&pn=${encodeURIComponent(CONFIG.upiName)}&am=${order.paymentRequired}&cu=INR&tn=${encodeURIComponent(`RAJVAARI Water Order ${order.orderId}`)}`;
+    // Use returned or dynamic upiLink
+    const upiUri = order.upiLink ||
+        `upi://pay?pa=${order.upiId || CONFIG.upiId}&pn=${encodeURIComponent(CONFIG.upiName)}&am=${order.paymentRequired}&cu=INR&tn=${encodeURIComponent('RAJVAARI ' + order.orderId)}`;
+
     payBtn.setAttribute("href", upiUri);
 
     // CRITICAL SECURITY RULE:
-    // NEVER show "Payment Successful" merely because the customer clicked a button!
-    // Payment status must remain PENDING until actually verified by a payment gateway/webhook.
+    // Do NOT show "Payment Successful" merely because the customer clicks "Pay ₹1".
+    // Do NOT change PENDING to PAID from frontend JavaScript.
     payBtn.onclick = (e) => {
-        showToast("UPI ऐप खोला जा रहा है। पेमेंट करने के बाद स्क्रीनशॉट सुरक्षित रखें।");
+        showToast("UPI ऐप खोला जा रहा है। पेमेंट के बाद सत्यापन का इंतजार करें।");
+        // Status strictly remains PENDING!
     };
 }
 
 function copyUpiId() {
+    const upiToCopy = currentOrderData?.upiId || CONFIG.upiId;
     if (!navigator.clipboard) {
-        showToast(`UPI ID: ${CONFIG.upiId}`);
+        showToast(`UPI ID: ${upiToCopy}`);
         return;
     }
-    navigator.clipboard.writeText(CONFIG.upiId).then(() => {
+    navigator.clipboard.writeText(upiToCopy).then(() => {
         const copyTextEl = document.getElementById("copyBtnText");
         if (copyTextEl) copyTextEl.textContent = "कॉपी हो गया! ✓";
-        showToast("UPI ID क्लिपबोर्ड पर कॉपी हो गया!");
+        showToast("UPI ID कॉपी हो गया!");
         setTimeout(() => {
             if (copyTextEl) copyTextEl.textContent = "कॉपी करें";
         }, 2500);
-    }).catch(err => {
-        console.error("Copy failed:", err);
-        showToast(`UPI ID: ${CONFIG.upiId}`);
+    }).catch(() => {
+        showToast(`UPI ID: ${upiToCopy}`);
     });
 }
 
@@ -672,20 +771,28 @@ function setupWhatsAppButton(order) {
 
     const fullAddrString = `${order.fullAddress}, ${order.villageArea}, ${order.city}, ${order.district}, ${order.state} - ${order.pincode}`;
 
-    // Exact pre-filled template requested by user:
+    // Exact requested structure:
+    // RAJVAARI Order
+    // Order ID
+    // Customer Name
+    // Mobile Number
+    // Address
+    // Product
+    // Bottle Size
+    // Quantity
+    // Payment Required
+    // Payment Status
     const message = 
-`*RAJVAARI Water Order*
-*Order ID:* ${order.orderId}
-*Customer Name:* ${order.customerName}
-*Mobile Number:* ${order.mobileNumber}
-*Address:* ${fullAddrString}
-*Product:* ${order.product}
-*Bottle Size:* ${order.bottleSize}
-*Quantity:* ${order.quantity}
-*Payment Required:* ₹${order.paymentRequired.toLocaleString("en-IN")}
-*Payment Status:* ${order.paymentStatus}
-
-_कृपया मेरा ऑर्डर कन्फर्म करें और डिलीवरी का समय बताएं। धन्यवाद!_`;
+`RAJVAARI Order
+Order ID: ${order.orderId}
+Customer Name: ${order.customerName}
+Mobile Number: ${order.mobileNumber}
+Address: ${fullAddrString}
+Product: ${order.product}
+Bottle Size: ${order.bottleSize}
+Quantity: ${order.quantity}
+Payment Required: ₹${order.paymentRequired}
+Payment Status: ${order.paymentStatus}`;
 
     const encodedMsg = encodeURIComponent(message);
     const waUrl = `https://api.whatsapp.com/send?phone=${CONFIG.whatsappNumber}&text=${encodedMsg}`;
@@ -700,7 +807,11 @@ function resetToNewOrder() {
     const orderForm = document.getElementById("rajvaariOrderForm");
     if (orderForm) orderForm.reset();
 
-    // Reset state & view
+    if (paymentCountdownInterval) {
+        clearInterval(paymentCountdownInterval);
+        paymentCountdownInterval = null;
+    }
+
     currentOrderData = null;
     const orderView = document.getElementById("orderView");
     const successView = document.getElementById("successView");
@@ -708,7 +819,14 @@ function resetToNewOrder() {
     if (successView) successView.classList.add("hidden");
     if (orderView) orderView.classList.remove("hidden");
 
-    // Reset default selections
+    // Reset cancelled state if any
+    const cancelledBox = document.getElementById("orderCancelledBox");
+    const countdownCard = document.getElementById("paymentCountdownCard");
+    const payBox = document.querySelector(".payment-action-box");
+    if (cancelledBox) cancelledBox.classList.add("hidden");
+    if (countdownCard) countdownCard.classList.remove("hidden");
+    if (payBox) payBox.classList.remove("hidden");
+
     const prodSelect = document.getElementById("productSelect");
     if (prodSelect) prodSelect.value = "RAJVAARI Mineral Water 20L Jar";
     const sizeSelect = document.getElementById("bottleSize");
@@ -718,11 +836,9 @@ function resetToNewOrder() {
     const stateInput = document.getElementById("state");
     if (stateInput) stateInput.value = "Rajasthan";
 
-    // Resync product gallery cards
     initProductGrid();
     updateLiveOrderSummary();
 
-    // Scroll to order section
     const orderSection = document.getElementById("orderSection");
     if (orderSection) {
         orderSection.scrollIntoView({ behavior: "smooth" });
@@ -730,7 +846,40 @@ function resetToNewOrder() {
 }
 
 // ============================================================================
-// 13. TOAST NOTIFICATION HELPER
+// 13. PAYMENT GATEWAY EXTENSIBILITY ARCHITECTURE
+// (Prepared so Razorpay/Cashfree verification can be plugged in without rebuilding)
+// ============================================================================
+const PaymentGatewayIntegration = {
+    /**
+     * Razorpay Checkout initialization placeholder
+     * To activate: Load Razorpay script and set merchant key in Apps Script backend
+     */
+    initiateRazorpay: function(orderData, onPaymentDone, onPaymentFailed) {
+        console.log("PaymentGateway: Razorpay integration hook prepared for order:", orderData.orderId);
+    },
+
+    /**
+     * Cashfree Checkout initialization placeholder
+     */
+    initiateCashfree: function(orderData, onPaymentDone, onPaymentFailed) {
+        console.log("PaymentGateway: Cashfree integration hook prepared for order:", orderData.orderId);
+    },
+
+    /**
+     * Polling or webhook status verification check against Apps Script backend
+     */
+    verifyStatusWithBackend: async function(orderId) {
+        try {
+            const res = await fetch(`${CONFIG.API_URL}?action=verifyPayment&orderId=${encodeURIComponent(orderId)}`);
+            return await res.json();
+        } catch (e) {
+            return { verified: false, status: "PENDING" };
+        }
+    }
+};
+
+// ============================================================================
+// 14. TOAST NOTIFICATION HELPER
 // ============================================================================
 let toastTimeout = null;
 function showToast(message) {

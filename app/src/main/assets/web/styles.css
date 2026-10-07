@@ -749,12 +749,15 @@ body {
 }
 
 .advance-note {
-    background: rgba(255, 255, 255, 0.7);
+    background: rgba(255, 255, 255, 0.85);
     border-radius: var(--radius-sm);
-    padding: 8px 12px;
-    font-size: 13px;
+    padding: 10px 14px;
+    font-size: 13.5px;
     color: var(--primary-deep);
-    border-left: 3px solid var(--primary-blue);
+    border-left: 3.5px solid var(--primary-blue);
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 /* Submit Button */
@@ -804,7 +807,10 @@ body {
     to { transform: rotate(360deg); }
 }
 
-/* SUCCESS SECTION */
+/* ==========================================================================
+   SUCCESS VIEW / ORDER CONFIRMATION SECTION
+   ========================================================================== */
+
 .hidden {
     display: none !important;
 }
@@ -818,6 +824,7 @@ body {
     to { opacity: 1; transform: translateY(0); }
 }
 
+/* Success Banner */
 .success-banner-card {
     background: linear-gradient(135deg, #059669 0%, #047857 100%);
     border-radius: var(--radius-lg);
@@ -861,16 +868,136 @@ body {
 
 .success-headline {
     font-family: var(--font-heading);
-    font-size: 22px;
+    font-size: 24px;
     font-weight: 800;
     margin-bottom: 6px;
+    letter-spacing: 0.5px;
 }
 
 .success-sub {
     font-size: 14.5px;
-    color: rgba(255, 255, 255, 0.9);
+    color: rgba(255, 255, 255, 0.95);
 }
 
+/* 24 Hour Countdown Card */
+.countdown-card {
+    background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%);
+    border: 2px solid #93C5FD;
+    border-radius: var(--radius-md);
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+}
+
+.countdown-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.countdown-icon {
+    font-size: 20px;
+    animation: rotateSlow 4s linear infinite;
+}
+
+@keyframes rotateSlow {
+    0% { transform: rotate(0deg); }
+    50% { transform: rotate(180deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.countdown-title {
+    font-family: var(--font-heading);
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--primary-dark);
+    letter-spacing: 0.5px;
+}
+
+.countdown-timer-display {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: #FFFFFF;
+    padding: 8px 18px;
+    border-radius: var(--radius-md);
+    border: 1px solid #BFDBFE;
+    box-shadow: 0 2px 6px rgba(0, 119, 182, 0.08);
+    margin-bottom: 8px;
+}
+
+.timer-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 44px;
+}
+
+.timer-box span {
+    font-family: var(--font-heading);
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--primary-deep);
+    line-height: 1;
+}
+
+.timer-box small {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-top: 3px;
+}
+
+.timer-colon {
+    font-family: var(--font-heading);
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--primary-blue);
+    line-height: 1;
+    margin-bottom: 12px;
+}
+
+.countdown-note {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+/* Order Cancelled Notification Box (Shown ONLY when backend returns CANCELLED) */
+.order-cancelled-box {
+    background: #FEF2F2;
+    border: 2px solid #FCA5A5;
+    border-radius: var(--radius-md);
+    padding: 16px 20px;
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    margin-bottom: 20px;
+    color: #991B1B;
+    animation: shake 0.5s ease;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-6px); }
+    40%, 80% { transform: translateX(6px); }
+}
+
+.cancelled-icon {
+    font-size: 28px;
+    line-height: 1;
+}
+
+.cancelled-text {
+    font-size: 15px;
+    line-height: 1.45;
+}
+
+/* Status Card */
 .status-card {
     padding: 24px 20px;
 }
@@ -919,6 +1046,7 @@ body {
     animation: pulseGlow 1.5s infinite;
 }
 
+/* Notice Box */
 .verification-notice-box {
     background: #FFFBEB;
     border: 1.5px solid #FDE68A;
@@ -931,16 +1059,22 @@ body {
 }
 
 .notice-icon {
-    font-size: 20px;
+    font-size: 22px;
     line-height: 1;
 }
 
 .notice-text {
-    font-size: 14px;
+    font-size: 14.5px;
     color: #92400E;
     line-height: 1.45;
 }
 
+.verification-msg-highlight {
+    font-weight: 700;
+    color: #78350F;
+}
+
+/* Status Indicators Grid */
 .status-indicators-grid {
     display: grid;
     grid-template-columns: 1fr;
@@ -986,6 +1120,16 @@ body {
     width: fit-content;
 }
 
+.badge-cancelled {
+    display: inline-block;
+    color: #DC2626;
+    background: #FEE2E2;
+    padding: 2px 8px;
+    border-radius: 6px;
+    width: fit-content;
+}
+
+/* Confirmed Details List */
 .confirmed-details-list {
     border-top: 1px solid var(--border-light);
     border-bottom: 1px solid var(--border-light);
@@ -1021,9 +1165,10 @@ body {
 
 .highlight-row {
     background: #F0F9FF;
-    padding: 8px 12px;
+    padding: 10px 14px;
     border-radius: var(--radius-sm);
     margin-top: 4px;
+    border: 1px solid #BAE6FD;
 }
 
 .highlight-row .d-label {
@@ -1033,16 +1178,18 @@ body {
 
 .payment-req-val {
     font-family: var(--font-heading);
-    font-size: 20px;
+    font-size: 22px;
     font-weight: 800;
     color: var(--primary-blue);
 }
 
+/* Professional Payment Action Section */
 .payment-action-box {
     background: #FFFFFF;
-    border: 2px solid var(--border-light);
+    border: 2px solid #BAE6FD;
     border-radius: var(--radius-md);
-    padding: 20px;
+    padding: 22px 20px;
+    box-shadow: var(--shadow-sm);
 }
 
 .payment-box-header {
@@ -1061,31 +1208,33 @@ body {
 }
 
 .pay-icon {
-    font-size: 28px;
+    font-size: 30px;
 }
 
 .pay-title {
     font-family: var(--font-heading);
-    font-size: 17px;
-    font-weight: 700;
+    font-size: 18px;
+    font-weight: 800;
     color: var(--text-primary);
 }
 
 .pay-sub {
-    font-size: 12.5px;
+    font-size: 13px;
     color: var(--text-secondary);
 }
 
 .pay-amount-tag {
     font-family: var(--font-heading);
-    font-size: 22px;
+    font-size: 24px;
     font-weight: 800;
     color: var(--primary-blue);
     background: var(--accent-ice);
-    padding: 4px 12px;
+    padding: 4px 14px;
     border-radius: var(--radius-pill);
+    border: 1px solid #90E0EF;
 }
 
+/* QR Code Section */
 .qr-code-wrapper {
     display: flex;
     flex-direction: column;
@@ -1095,10 +1244,10 @@ body {
 
 .qr-frame {
     background: #FFFFFF;
-    border: 2px solid #BAE6FD;
-    border-radius: 16px;
+    border: 2.5px solid #0077B6;
+    border-radius: 18px;
     padding: 16px;
-    box-shadow: var(--shadow-sm);
+    box-shadow: 0 8px 24px rgba(0, 119, 182, 0.15);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -1106,8 +1255,8 @@ body {
 }
 
 .qr-canvas-holder {
-    width: 190px;
-    height: 190px;
+    width: 210px;
+    height: 210px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1117,33 +1266,43 @@ body {
 .qr-canvas-holder canvas {
     max-width: 100% !important;
     height: auto !important;
+    border-radius: 4px;
 }
 
 .qr-badge-overlay {
-    margin-top: 8px;
-    background: var(--primary-blue);
+    margin-top: 10px;
+    background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-dark) 100%);
     color: #FFFFFF;
-    font-size: 11px;
-    font-weight: 700;
+    font-size: 12px;
+    font-weight: 800;
     letter-spacing: 0.5px;
-    padding: 3px 10px;
+    padding: 5px 14px;
     border-radius: var(--radius-pill);
+    box-shadow: 0 2px 6px rgba(0, 119, 182, 0.25);
+}
+
+.qr-scan-guide {
+    font-size: 12.5px;
+    color: var(--text-secondary);
+    margin-top: 8px;
+    text-align: center;
 }
 
 .upi-id-copy-row {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     background: var(--bg-page);
-    border: 1px solid var(--border-color);
-    padding: 6px 14px;
+    border: 1.5px solid #BAE6FD;
+    padding: 8px 16px;
     border-radius: var(--radius-pill);
-    font-size: 13.5px;
+    font-size: 14px;
 }
 
 .upi-id-copy-row code {
     font-family: monospace;
     font-weight: 700;
+    font-size: 15px;
     color: var(--primary-dark);
 }
 
@@ -1152,9 +1311,9 @@ body {
     color: #FFFFFF;
     border: none;
     border-radius: var(--radius-pill);
-    padding: 4px 12px;
-    font-size: 12px;
-    font-weight: 600;
+    padding: 5px 14px;
+    font-size: 12.5px;
+    font-weight: 700;
     cursor: pointer;
     transition: background 0.15s ease;
 }
@@ -1163,6 +1322,7 @@ body {
     background: var(--primary-dark);
 }
 
+/* Payment & Action Buttons Grid */
 .payment-buttons-grid {
     display: flex;
     flex-direction: column;
@@ -1226,6 +1386,7 @@ body {
     border-color: var(--text-muted);
 }
 
+/* Trust Section */
 .trust-section {
     margin-top: 36px;
 }
@@ -1264,6 +1425,7 @@ body {
     line-height: 1.4;
 }
 
+/* Footer */
 .app-footer {
     background: var(--primary-deep);
     color: #FFFFFF;
@@ -1308,6 +1470,7 @@ body {
     color: rgba(255, 255, 255, 0.6);
 }
 
+/* Toast Notification */
 .toast {
     position: fixed;
     bottom: 24px;

@@ -97,7 +97,7 @@
             </div>
             
             <div class="product-grid" id="productCardsContainer">
-                <!-- Dynamically populated or rendered product cards -->
+                <!-- Dynamically populated product cards -->
             </div>
         </section>
 
@@ -292,7 +292,7 @@
                                 <span class="summary-val total-amount" id="summaryTotal">₹0</span>
                             </div>
                             <div class="advance-note">
-                                ℹ️ ऑर्डर कन्फर्मेशन के लिए निर्धारित अग्रिम राशि: <strong>₹2,000</strong>
+                                ℹ️ टेस्ट पेमेंट राशि: <strong>₹1</strong> (Order Creation & Verification)
                             </div>
                         </div>
 
@@ -320,8 +320,33 @@
                             <path class="checkmark-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
                         </svg>
                     </div>
-                    <h2 class="success-headline">आपका ऑर्डर सफलतापूर्वक दर्ज हो गया है!</h2>
-                    <p class="success-sub">Order ID <strong id="dispOrderIdTop">RJV-WAITING</strong> आपके नंबर पर भी सुरक्षित कर दिया गया है।</p>
+                    <h2 class="success-headline">ऑर्डर सफलतापूर्वक दर्ज हो गया!</h2>
+                    <p class="success-sub">Order ID: <strong id="dispOrderIdTop">RJV-WAITING</strong> आपके नंबर पर भी सुरक्षित कर दिया गया है।</p>
+                </div>
+
+                <!-- 24-Hour Payment Limit Countdown Card -->
+                <div class="countdown-card" id="paymentCountdownCard">
+                    <div class="countdown-header">
+                        <span class="countdown-icon">⏳</span>
+                        <span class="countdown-title">Payment के लिए 24 घंटे बाकी</span>
+                    </div>
+                    <div class="countdown-timer-display" id="paymentCountdownTimer">
+                        <div class="timer-box"><span id="cdHours">23</span><small>घंटे</small></div>
+                        <span class="timer-colon">:</span>
+                        <div class="timer-box"><span id="cdMinutes">59</span><small>मिनट</small></div>
+                        <span class="timer-colon">:</span>
+                        <div class="timer-box"><span id="cdSeconds">59</span><small>सेकंड</small></div>
+                    </div>
+                    <p class="countdown-note">समय सीमा समाप्त होने पर असत्यापित ऑर्डर बैकएंड द्वारा निरस्त कर दिया जाएगा।</p>
+                </div>
+
+                <!-- Order Cancelled Banner (Shown ONLY when backend returns CANCELLED status) -->
+                <div class="order-cancelled-box hidden" id="orderCancelledBox">
+                    <div class="cancelled-icon">⚠️</div>
+                    <div class="cancelled-text">
+                        <strong>ऑर्डर स्थिति:</strong><br>
+                        Payment समय पर प्राप्त नहीं हुआ। आपका order cancel कर दिया गया है।
+                    </div>
                 </div>
 
                 <!-- Comprehensive Order Details Card -->
@@ -339,10 +364,9 @@
 
                     <!-- Critical Verification Warning Box -->
                     <div class="verification-notice-box">
-                        <div class="notice-icon">⚠️</div>
+                        <div class="notice-icon">ℹ️</div>
                         <div class="notice-text">
-                            <strong>महत्वपूर्ण सूचना:</strong><br>
-                            Payment verification के बाद आपका order confirm किया जाएगा।
+                            <strong class="verification-msg-highlight">₹1 का भुगतान करें। Payment verification के बाद आपका order confirm किया जाएगा।</strong>
                         </div>
                     </div>
 
@@ -390,7 +414,7 @@
                         </div>
                         <div class="detail-row highlight-row">
                             <span class="d-label">Payment Required:</span>
-                            <strong class="d-val payment-req-val" id="dispPaymentRequired">₹2,000</strong>
+                            <strong class="d-val payment-req-val" id="dispPaymentRequired">₹1</strong>
                         </div>
                     </div>
 
@@ -400,11 +424,11 @@
                             <div class="pay-title-group">
                                 <span class="pay-icon">💳</span>
                                 <div>
-                                    <h4 class="pay-title">UPI / QR कोड द्वारा भुगतान करें</h4>
+                                    <h4 class="pay-title">UPI / QR कोड भुगतान (Payment Required: ₹1)</h4>
                                     <p class="pay-sub">GPay, PhonePe, Paytm, BHIM या किसी भी UPI ऐप से स्कैन करें</p>
                                 </div>
                             </div>
-                            <div class="pay-amount-tag">₹2,000</div>
+                            <div class="pay-amount-tag">₹1</div>
                         </div>
 
                         <!-- Dynamic QR Code Container -->
@@ -412,24 +436,25 @@
                             <div class="qr-frame">
                                 <div id="upiQrCodeContainer" class="qr-canvas-holder"></div>
                                 <div class="qr-badge-overlay">
-                                    <span>SCAN & PAY ₹2,000</span>
+                                    <span>SCAN & PAY ₹1</span>
                                 </div>
                             </div>
+                            <p class="qr-scan-guide">दूसरे फोन से Google Pay, PhonePe, Paytm या BHIM से स्कैन करें</p>
                             <div class="upi-id-copy-row">
                                 <span class="upi-label">UPI ID:</span>
-                                <code id="dispUpiIdText">rajvaariwater@upi</code>
+                                <code id="dispUpiIdText">9950906310-2@ybl</code>
                                 <button type="button" class="btn-copy-upi" id="copyUpiBtn" title="कॉपी करें">
                                     <span id="copyBtnText">कॉपी करें</span>
                                 </button>
                             </div>
                         </div>
 
-                        <!-- Action Buttons: Pay ₹2,000, WhatsApp, New Order -->
+                        <!-- Action Buttons: Pay ₹1, WhatsApp, New Order -->
                         <div class="payment-buttons-grid">
                             <!-- Direct UPI App Launcher Button -->
                             <a href="#" class="btn-action btn-pay-upi" id="payUpiActionBtn">
                                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
-                                <span>Pay ₹2,000</span>
+                                <span>Pay ₹1</span>
                             </a>
 
                             <!-- WhatsApp Sharing Button -->
