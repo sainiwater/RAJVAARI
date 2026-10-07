@@ -9,6 +9,44 @@
 
 // EXACT APPS SCRIPT API URL (Required by User)
 const API_URL = "https://script.google.com/macros/s/AKfycbzLB-DWBSqgaer41vxJFuEPoAAYSs2f-P-YljFwtj1ERgpqTuQpXZo7otGY5JzpfPYhX/exec";
+// Alternative endpoint without potential hyphen mismatch
+const API_URL_ALT = "https://script.google.com/macros/s/AKfycbzLB-DWBSqgaer41vxJFuEPoAAYSs2fP-YljFwtj1ERgpqTuQpXZo7otGY5JzpfPYhX/exec";
+
+/**
+ * Robust Google Apps Script POST helper
+ * Sends as text/plain to prevent browser CORS preflight OPTIONS request
+ */
+async function postToAppsScript(payload) {
+    const urls = [API_URL, API_URL_ALT];
+    let lastErr = null;
+
+    for (const url of urls) {
+        try {
+            const response = await fetch(url, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "text/plain;charset=utf-8"
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const textData = await response.text();
+            try {
+                const parsed = JSON.parse(textData);
+                if (parsed && typeof parsed === "object") {
+                    return parsed;
+                }
+            } catch (jsonErr) {
+                console.warn("Non-JSON response from endpoint:", url, textData.substring(0, 100));
+            }
+        } catch (fetchErr) {
+            console.warn("Fetch failed for endpoint:", url, fetchErr);
+            lastErr = fetchErr;
+        }
+    }
+
+    throw lastErr || new Error("Backend did not return valid JSON");
+}
 
 // EXACT 2 PRODUCTS CONFIGURATION
 const PRODUCTS = [
@@ -300,41 +338,30 @@ async function handlePlaceOrder() {
     if (statusNotice) statusNotice.textContent = "Connecting to Google Sheet...";
 
     const calc = getOrderQuantities();
+    const custMob = document.getElementById("custMobile").value.trim();
 
-    // PAYLOAD FORMAT REQUIRED BY USER
+    // PAYLOAD FORMAT REQUIRED BY USER & BACKEND
     const payload = {
         action: "createOrder",
         customerName: document.getElementById("custName").value.trim(),
-        mobileNumber: document.getElementById("custMobile").value.trim(),
-        alternateNumber: document.getElementById("custAltMobile")?.value.trim() || "N/A",
+        mobile: custMob,
+        mobileNumber: custMob,
+        alternateNumber: document.getElementById("custAltMobile")?.value.trim() || "",
         fullAddress: document.getElementById("custAddress").value.trim(),
-        villageArea: document.getElementById("custVillage")?.value.trim() || "N/A",
+        villageArea: document.getElementById("custVillage")?.value.trim() || "",
         city: document.getElementById("custCity").value.trim(),
         district: document.getElementById("custDistrict").value.trim(),
         state: document.getElementById("custState").value.trim(),
         pinCode: document.getElementById("custPin").value.trim(),
         bottleSize: activeProduct.bottleSize,
         quantity: calc.quantity,
+        deliveryCharge: 0,
+        discount: 0,
         notes: document.getElementById("custNotes")?.value.trim() || ""
     };
 
     try {
-        const response = await fetch(API_URL, {
-            method: "POST",
-            headers: {
-                "Content-Type": "text/plain;charset=utf-8"
-            },
-            body: JSON.stringify(payload)
-        });
-
-        const textData = await response.text();
-        let apiResult = null;
-
-        try {
-            apiResult = JSON.parse(textData);
-        } catch (e) {
-            console.warn("Raw API response:", textData);
-        }
+        const apiResult = await postToAppsScript(payload);
 
         if (apiResult && apiResult.success && apiResult.orderId) {
             activeCreatedOrder = {
@@ -353,7 +380,7 @@ async function handlePlaceOrder() {
             showPaymentSection(activeCreatedOrder);
             showToast("आपका order सफलतापूर्वक प्राप्त हो गया है।");
         } else {
-            // API returned failure or invalid format
+            // API returned failure or unexpected response
             const errMsg = (apiResult && apiResult.error) ? apiResult.error : "Unable to create order. Please try again.";
             if (statusNotice) statusNotice.textContent = errMsg;
             showToast(errMsg);
@@ -441,17 +468,7 @@ async function handleUtrSubmit() {
     };
 
     try {
-        const response = await fetch(API_URL, {
-            method: "POST",
-            headers: { "Content-Type": "text/plain;charset=utf-8" },
-            body: JSON.stringify(payload)
-        });
-
-        const text = await response.text();
-        let resJson = null;
-        try {
-            resJson = JSON.parse(text);
-        } catch (e) {}
+        await postToAppsScript(payload);
 
         if (feedback) {
             feedback.style.color = "#047857";
@@ -562,14 +579,20 @@ function setupTrackModal() {
 
                 // Query Apps Script API (doGet trackOrder)
                 if (!orderMatch) {
-                    try {
-                        const qUrl = `${API_URL}?action=trackOrder&orderId=${encodeURIComponent(orderIdInp)}`;
-                        const res = await fetch(qUrl);
-                        const resJson = await res.json();
-                        if (resJson && resJson.success && resJson.order) {
-                            orderMatch = resJson.order;
-                        }
-                    } catch (netErr) {}
+                    const trackUrls = [
+                        `${API_URL}?action=trackOrder&orderId=${encodeURIComponent(orderIdInp)}`,
+                        `${API_URL_ALT}?action=trackOrder&orderId=${encodeURIComponent(orderIdInp)}`
+                    ];
+                    for (const qUrl of trackUrls) {
+                        try {
+                            const res = await fetch(qUrl);
+                            const resJson = await res.json();
+                            if (resJson && resJson.success && resJson.order) {
+                                orderMatch = resJson.order;
+                                break;
+                            }
+                        } catch (netErr) {}
+                    }
                 }
 
                 resultBox.classList.remove("hidden");
