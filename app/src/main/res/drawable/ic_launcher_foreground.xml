@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Drop Shadow -->
+    <path
+        android:fillColor="#33000000"
+        android:pathData="M54,26 C54,26 36,49 36,63 C36,73.5 44.5,82 55,82 C65.5,82 74,73.5 74,63 C74,49 56,26 56,26 Z" />
+
+    <!-- Main Pure Water Droplet Shape -->
+    <path
+        android:pathData="M54,23 C54,23 35,46 35,60 C35,70.5 43.5,79 54,79 C64.5,79 73,70.5 73,60 C73,46 54,23 54,23 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:angle="270"
+                android:endX="54"
+                android:endY="79"
+                android:startX="54"
+                android:startY="23"
+                android:type="linear">
+                <item android:color="#FFFFFF" android:offset="0.0" />
+                <item android:color="#E0F7FA" android:offset="0.5" />
+                <item android:color="#B2EBF2" android:offset="1.0" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Water droplet light highlight reflection -->
+    <path
+        android:fillColor="#80FFFFFF"
+        android:pathData="M43,54 C41,58 41,63 43,67 C44.5,70 47,72 50,73 C46,71 44,67 44,63 C44,59 45.5,56 47,53 Z" />
+
+    <!-- Royal Crown inside water droplet for RAJVAARI brand -->
+    <path
+        android:pathData="M45,63 L47,54 L51,58 L54,51 L57,58 L61,54 L63,63 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:angle="45"
+                android:endX="63"
+                android:endY="63"
+                android:startX="45"
+                android:startY="51"
+                android:type="linear">
+                <item android:color="#0077B6" android:offset="0.0" />
+                <item android:color="#0096C7" android:offset="1.0" />
+            </gradient>
+        </aapt:attr>
+    </path>
+    <!-- Crown base bar -->
+    <path
+        android:fillColor="#0077B6"
+        android:pathData="M44.5,64.5 L63.5,64.5 L63.5,66.5 L44.5,66.5 Z" />
+
+    <!-- Purity Sparkle Top Right -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M66,35 L68,39 L72,41 L68,43 L66,47 L64,43 L60,41 L64,39 Z" />
+</vector>

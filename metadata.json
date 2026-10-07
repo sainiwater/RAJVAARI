@@ -1,0 +1,7 @@
+{
+  "name": "RAJVAARI Water",
+  "description": "Premium packaged drinking water online ordering application for RAJVAARI.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
