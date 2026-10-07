@@ -8,9 +8,9 @@
  */
 
 // EXACT APPS SCRIPT API URL (Required by User)
-const API_URL = "https://script.google.com/macros/s/AKfycbzLB-DWBSqgaer41vxJFuEPoAAYSs2f-P-YljFwtj1ERgpqTuQpXZo7otGY5JzpfPYhX/exec";
-// Alternative endpoint without potential hyphen mismatch
-const API_URL_ALT = "https://script.google.com/macros/s/AKfycbzLB-DWBSqgaer41vxJFuEPoAAYSs2fP-YljFwtj1ERgpqTuQpXZo7otGY5JzpfPYhX/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzLB-DWBSqgaer41vxJFuEPoAAYSs2fP-YljFwtj1ERgpqTuQpXZo7otGY5JzpfPYhX/exec";
+// Alternative endpoint
+const API_URL_ALT = "https://script.google.com/macros/s/AKfycbzLB-DWBSqgaer41vxJFuEPoAAYSs2f-P-YljFwtj1ERgpqTuQpXZo7otGY5JzpfPYhX/exec";
 
 /**
  * Robust Google Apps Script POST helper
@@ -381,7 +381,10 @@ async function handlePlaceOrder() {
             showToast("आपका order सफलतापूर्वक प्राप्त हो गया है।");
         } else {
             // API returned failure or unexpected response
-            const errMsg = (apiResult && apiResult.error) ? apiResult.error : "Unable to create order. Please try again.";
+            let errMsg = (apiResult && (apiResult.message || apiResult.error)) ? (apiResult.message || apiResult.error) : "Unable to create order. Please try again.";
+            if (typeof errMsg === "string" && errMsg.toLowerCase().includes("orders sheet not found")) {
+                errMsg = "Google Sheet में 'Orders' नाम की शीट (Tab) नहीं मिली। कृपया Google Sheet में टैब का नाम बदलकर 'Orders' करें।";
+            }
             if (statusNotice) statusNotice.textContent = errMsg;
             showToast(errMsg);
         }
