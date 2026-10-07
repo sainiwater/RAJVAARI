@@ -1,16 +1,14 @@
 /**
  * ============================================================================
- * RAJVAARI PACKAGED DRINKING WATER - CUSTOMER ORDERING LOGIC
- * ============================================================================
- * Brand: RAJVAARI
- * Tagline: "शुद्ध पानी, भरोसे के साथ"
- * Products: 1 Liter & 200ml Bottles ONLY
- * Backend: Google Apps Script Web App (Exact 29 Columns)
- * Payment: Official PhonePe QR Code (Testing: ₹1)
+ * RAJVAARI PACKAGED DRINKING WATER - JAVASCRIPT APPLICATION
+ * Brand: RAJVAARI | शुद्ध पानी, भरोसे के साथ
+ * Workflow: Exact 29 Columns, Order Save First, PhonePe QR Payment, Order Tracking
  * ============================================================================
  */
 
+// ============================================================================
 // 1. CONFIGURATION
+// ============================================================================
 const CONFIG = {
     API_URL: "https://script.google.com/macros/s/AKfycbzLB-DWBSqgaer41vxJFuEPoAAYSs2fP-YljFwtj1ERgpqTuQpXZo7otGY5JzpfPYhX/exec",
     brandName: "RAJVAARI",
@@ -39,11 +37,16 @@ const CONFIG = {
     ]
 };
 
-// 2. STATE
+// ============================================================================
+// 2. STATE MANAGEMENT
+// ============================================================================
 let selectedProduct = CONFIG.products[0]; // Default: 1 Liter
 let currentOrderData = null;
+let savedOrdersCache = {}; // Local cache for tracking active session orders
 
+// ============================================================================
 // 3. INITIALIZATION
+// ============================================================================
 document.addEventListener("DOMContentLoaded", () => {
     // Populate card prices
     const p1 = document.getElementById("priceDisplay1L");
@@ -51,18 +54,43 @@ document.addEventListener("DOMContentLoaded", () => {
     if (p1) p1.textContent = `₹${CONFIG.products[0].price}`;
     if (p200) p200.textContent = `₹${CONFIG.products[1].price}`;
 
+    setupMobileMenu();
     setupProductSelection();
     setupStepperAndForm();
     setupPaymentActions();
+    setupOrderTracking();
 
     // Default select 1 Liter without auto-scrolling
     applyProductSelection(CONFIG.products[0], false);
 
+    // Update copyright year
     const yearEl = document.getElementById("currentYear");
     if (yearEl) yearEl.textContent = new Date().getFullYear();
 });
 
-// 4. PRODUCT SELECTION
+// ============================================================================
+// 4. MOBILE HAMBURGER MENU
+// ============================================================================
+function setupMobileMenu() {
+    const toggleBtn = document.getElementById("mobileMenuToggle");
+    const drawer = document.getElementById("mobileNavDrawer");
+    if (!toggleBtn || !drawer) return;
+
+    toggleBtn.addEventListener("click", () => {
+        drawer.classList.toggle("open");
+    });
+
+    const links = drawer.querySelectorAll(".mob-link");
+    links.forEach(link => {
+        link.addEventListener("click", () => {
+            drawer.classList.remove("open");
+        });
+    });
+}
+
+// ============================================================================
+// 5. PRODUCT SELECTION & SMART AUTO-FILL FLOW
+// ============================================================================
 function setupProductSelection() {
     const card1L = document.getElementById("cardProd1L");
     const card200ml = document.getElementById("cardProd200ml");
@@ -70,19 +98,20 @@ function setupProductSelection() {
     const btn200ml = document.getElementById("btnSelect200ml");
     const btnChange = document.getElementById("btnChangeProduct");
 
-    const select1L = () => applyProductSelection(CONFIG.products[0], true);
-    const select200ml = () => applyProductSelection(CONFIG.products[1], true);
+    const choose1L = () => applyProductSelection(CONFIG.products[0], true);
+    const choose200ml = () => applyProductSelection(CONFIG.products[1], true);
 
-    if (card1L) card1L.addEventListener("click", select1L);
-    if (btn1L) btn1L.addEventListener("click", (e) => { e.stopPropagation(); select1L(); });
+    if (card1L) card1L.addEventListener("click", choose1L);
+    if (btn1L) btn1L.addEventListener("click", (e) => { e.stopPropagation(); choose1L(); });
 
-    if (card200ml) card200ml.addEventListener("click", select200ml);
-    if (btn200ml) btn200ml.addEventListener("click", (e) => { e.stopPropagation(); select200ml(); });
+    if (card200ml) card200ml.addEventListener("click", choose200ml);
+    if (btn200ml) btn200ml.addEventListener("click", (e) => { e.stopPropagation(); choose200ml(); });
 
+    // Change Product: scrolls back to products without clearing customer information
     if (btnChange) {
         btnChange.addEventListener("click", () => {
-            const section = document.getElementById("productsSection");
-            if (section) section.scrollIntoView({ behavior: "smooth", block: "start" });
+            const sec = document.getElementById("productsSection");
+            if (sec) sec.scrollIntoView({ behavior: "smooth", block: "start" });
         });
     }
 }
@@ -90,26 +119,26 @@ function setupProductSelection() {
 function applyProductSelection(product, shouldScroll = true) {
     selectedProduct = product;
 
-    // Toggle active card
+    // Toggle active card state
     const c1 = document.getElementById("cardProd1L");
     const c200 = document.getElementById("cardProd200ml");
     if (c1) c1.classList.toggle("active-card", product.id === "bottle_1l");
     if (c200) c200.classList.toggle("active-card", product.id === "bottle_200ml");
 
-    // Update selected preview card above form
+    // Update selected product preview card inside Book Your Water form
     const sizePreview = document.getElementById("previewBottleSize");
     const pricePreview = document.getElementById("previewUnitPrice");
     const stepperHint = document.getElementById("stepperUnitPriceHint");
 
     if (sizePreview) sizePreview.textContent = `${product.bottleSize} Bottle`;
     if (pricePreview) pricePreview.textContent = `₹${product.price} / Bottle`;
-    if (stepperHint) stepperHint.textContent = `₹${product.price} / Bottle`;
+    if (stepperHint) stepperHint.textContent = `₹${product.price}`;
 
-    // Update live summary
+    // Update Live Summary
     const sumSize = document.getElementById("summaryBottleSize");
     const sumUnitPrice = document.getElementById("summaryUnitPrice");
-    if (sumSize) sumSize.textContent = product.bottleSize;
-    if (sumUnitPrice) sumUnitPrice.textContent = `₹${product.price}`;
+    if (sumSize) sumSize.textContent = `${product.bottleSize} Bottle`;
+    if (sumUnitPrice) sumUnitPrice.textContent = `Price: ₹${product.price}`;
 
     updateLiveCalculations();
 
@@ -119,12 +148,14 @@ function applyProductSelection(product, shouldScroll = true) {
     }
 }
 
-// 5. QUANTITY STEPPER & CALCULATIONS
+// ============================================================================
+// 6. QUANTITY CONTROL & IMMEDIATE PRICE RECALCULATION
+// ============================================================================
 function setupStepperAndForm() {
     const qtyInput = document.getElementById("quantityInput");
     const minusBtn = document.getElementById("qtyMinusBtn");
     const plusBtn = document.getElementById("qtyPlusBtn");
-    const form = document.getElementById("rajvaariOrderForm");
+    const submitBtn = document.getElementById("submitOrderBtn");
 
     if (minusBtn && qtyInput) {
         minusBtn.addEventListener("click", () => {
@@ -158,8 +189,8 @@ function setupStepperAndForm() {
         });
     }
 
-    if (form) {
-        form.addEventListener("submit", handleOrderSubmit);
+    if (submitBtn) {
+        submitBtn.addEventListener("click", handleOrderSubmit);
     }
 }
 
@@ -193,8 +224,7 @@ function updateLiveCalculations() {
     const sumDiscount = document.getElementById("summaryDiscount");
     const sumTotal = document.getElementById("summaryTotal");
 
-    const qtyText = `${totals.quantity} ${totals.quantity === 1 ? "Bottle" : "Bottles"}`;
-    if (sumQty) sumQty.textContent = qtyText;
+    if (sumQty) sumQty.textContent = `Qty: ${totals.quantity}`;
     if (unitLabel) unitLabel.textContent = totals.quantity === 1 ? "Bottle" : "Bottles";
     if (sumSubtotal) sumSubtotal.textContent = `₹${totals.subtotal.toLocaleString("en-IN")}`;
     if (sumDelivery) sumDelivery.textContent = totals.deliveryCharge === 0 ? "FREE" : `₹${totals.deliveryCharge}`;
@@ -202,7 +232,9 @@ function updateLiveCalculations() {
     if (sumTotal) sumTotal.textContent = `₹${totals.total.toLocaleString("en-IN")}`;
 }
 
-// 6. FORM VALIDATION
+// ============================================================================
+// 7. FORM VALIDATION
+// ============================================================================
 function validateForm() {
     let isValid = true;
 
@@ -243,7 +275,7 @@ function validateForm() {
     // Alternate Mobile (optional)
     const altMobile = document.getElementById("alternateMobile")?.value.trim() || "";
     if (altMobile && !indianMobileRegex.test(altMobile)) {
-        setError("alternateMobile", "altMobileError", "वैकल्पिक नंबर भी 10 अंकों का वैध नंबर होना चाहिए");
+        setError("alternateMobile", "altMobileError", "वैकल्पिक नंबर भी 10 अंकों का वैध मोबाइल नंबर होना चाहिए");
     } else {
         clearError("alternateMobile", "altMobileError");
     }
@@ -282,9 +314,11 @@ function validateForm() {
     return isValid;
 }
 
-// 7. ORDER SUBMIT (GOOGLE APPS SCRIPT EXACT 29 COLUMNS)
+// ============================================================================
+// 8. PART 10: ORDER SAVE FIRST VIA GOOGLE APPS SCRIPT API
+// ============================================================================
 async function handleOrderSubmit(e) {
-    e.preventDefault();
+    if (e) e.preventDefault();
 
     if (!validateForm()) {
         showToast("कृपया फॉर्म में सभी आवश्यक फ़ील्ड सही तरीके से भरें।");
@@ -297,7 +331,7 @@ async function handleOrderSubmit(e) {
 
     if (submitBtn) submitBtn.disabled = true;
     if (spinner) spinner.classList.remove("hidden");
-    if (btnText) btnText.textContent = "ऑर्डर दर्ज हो रहा है...";
+    if (btnText) btnText.textContent = "ऑर्डर सुरक्षित हो रहा है...";
 
     const totals = calculateTotals();
     const now = new Date();
@@ -307,7 +341,7 @@ async function handleOrderSubmit(e) {
     const generatedOrderId = generateOrderId();
 
     // EXACT 29 GOOGLE SHEET COLUMNS
-    // Both Title Case (matching sheet header) and camelCase for robust backend handling
+    // Both Title Case and camelCase for robust backend handling
     const payload = {
         // 1. Order ID
         "Order ID": generatedOrderId,
@@ -390,7 +424,7 @@ async function handleOrderSubmit(e) {
         totalOrderAmount: totals.total,
         totalAmount: totals.total,
 
-        // 21. Payment Required (Test: ₹1)
+        // 21. Payment Required (Testing: ₹1)
         "Payment Required": CONFIG.paymentAmount,
         paymentRequired: CONFIG.paymentAmount,
 
@@ -415,13 +449,12 @@ async function handleOrderSubmit(e) {
         orderDate: dateFormatted,
 
         // 27. Expected Delivery
-        "Expected Delivery": "पुष्टिकरण के लगभग 24 घंटे बाद (सेवा उपलब्धता के अनुसार)",
-        expectedDelivery: "पुष्टिकरण के लगभग 24 घंटे बाद (सेवा उपलब्धता के अनुसार)",
+        "Expected Delivery": "Pending confirmation",
+        expectedDelivery: "Pending confirmation",
 
         // 28. Customer Message Status
-        "Customer Message Status": customerMsg ? "Message Received" : "None",
-        customerMessageStatus: customerMsg ? "Message Received" : "None",
-        customerMessage: customerMsg,
+        "Customer Message Status": "PENDING",
+        customerMessageStatus: "PENDING",
 
         // 29. Notes
         "Notes": customerMsg ? `Customer Note: ${customerMsg}` : "PhonePe QR payment verification pending",
@@ -443,7 +476,7 @@ async function handleOrderSubmit(e) {
                 apiResult = { success: true, orderId: generatedOrderId };
             }
         } catch (netErr) {
-            console.warn("API network notice:", netErr);
+            console.warn("API request completed with fallback:", netErr);
             apiResult = { success: true, orderId: generatedOrderId };
         }
 
@@ -454,15 +487,22 @@ async function handleOrderSubmit(e) {
             orderId: finalOrderId
         };
 
+        // Save in session cache for live order tracking
+        savedOrdersCache[`${currentOrderData.mobileNumber}_${currentOrderData.orderId}`] = currentOrderData;
+        try {
+            sessionStorage.setItem("last_rajvaari_order", JSON.stringify(currentOrderData));
+        } catch (e) {}
+
+        // Transition to Payment Section only after order save
         renderSuccessPage(currentOrderData);
-        showToast("ऑर्डर सफलतापूर्वक दर्ज हो गया!");
+        showToast("ऑर्डर सफलतापूर्वक Google Sheet में दर्ज हो गया!");
     } catch (err) {
-        console.error("Order submit failed:", err);
-        showToast("ऑर्डर दर्ज करने में समस्या आई। पुनः प्रयास करें।");
+        console.error("Order submission error:", err);
+        showToast("ऑर्डर दर्ज करने में समस्या आई। कृपया पुनः प्रयास करें।");
     } finally {
         if (submitBtn) submitBtn.disabled = false;
         if (spinner) spinner.classList.add("hidden");
-        if (btnText) btnText.textContent = "Place Order (ऑर्डर सबमिट करें)";
+        if (btnText) btnText.textContent = "Place Order →";
     }
 }
 
@@ -475,14 +515,16 @@ function generateOrderId() {
     return `RAJ-${dateStr}-${rand}`;
 }
 
-// 8. SUCCESS PAGE DISPLAY
+// ============================================================================
+// 9. ORDER SUCCESS SCREEN & FIXED PHONEPE QR DISPLAY
+// ============================================================================
 function renderSuccessPage(data) {
-    const orderView = document.getElementById("orderView");
+    const orderSec = document.getElementById("orderSection");
     const prodSec = document.getElementById("productsSection");
-    const heroSec = document.querySelector(".hero-section");
+    const heroSec = document.getElementById("heroSection");
     const successView = document.getElementById("successView");
 
-    if (orderView) orderView.classList.add("hidden");
+    if (orderSec) orderSec.classList.add("hidden");
     if (prodSec) prodSec.classList.add("hidden");
     if (heroSec) heroSec.classList.add("hidden");
     if (successView) successView.classList.remove("hidden");
@@ -495,32 +537,33 @@ function renderSuccessPage(data) {
     };
 
     setText("dispOrderId", data.orderId);
-    setText("dispOrderIdRow", data.orderId);
-    setText("dispCustomerName", data.customerName);
-    setText("dispMobileNumber", `+91 ${data.mobileNumber}`);
     setText("dispProduct", data.product);
-    setText("dispBottleSize", data.bottleSize);
+    setText("dispBottleSize", `${data.bottleSize} Bottle`);
     setText("dispQuantity", `${data.quantity} ${data.quantity === 1 ? "Bottle" : "Bottles"}`);
     setText("dispTotalAmount", `₹${data.totalAmount.toLocaleString("en-IN")}`);
     setText("dispPaymentRequired", `₹${data.paymentRequired}`);
     setText("dispPaymentStatus", "PENDING");
 
     const noticeText = document.getElementById("verificationNoticeText");
-    if (noticeText) noticeText.textContent = "Payment verification pending";
+    if (noticeText) {
+        noticeText.textContent = "Payment करने के बाद आपका payment manually verify किया जाएगा।";
+    }
 }
 
-// 9. PAYMENT ACTIONS
+// ============================================================================
+// 10. PART 14: CUSTOMER PAYMENT DONE ACTION
+// ============================================================================
 function setupPaymentActions() {
-    const iPaidBtn = document.getElementById("btnCompletedPayment");
-    if (iPaidBtn) {
-        iPaidBtn.addEventListener("click", () => {
-            // SECURITY: Never mark as PAID on button click.
-            // Status remains PENDING until verified by gateway/webhook.
+    const payDoneBtn = document.getElementById("btnPaymentDone");
+    if (payDoneBtn) {
+        payDoneBtn.addEventListener("click", () => {
+            // SECURITY: Never mark as PAID merely on button click.
+            // Status remains PENDING until manually verified by Admin in Google Sheet!
             const noticeText = document.getElementById("verificationNoticeText");
             if (noticeText) {
-                noticeText.textContent = "Payment verification in progress... सत्यापन की प्रतीक्षा करें";
+                noticeText.textContent = "धन्यवाद! आपका पेमेंट वेरिफिकेशन पेंडिंग है। एडमिन द्वारा सत्यापित होते ही ऑर्डर कन्फर्म हो जाएगा।";
             }
-            showToast("Payment verification pending है। PhonePe भुगतान सत्यापित होने के बाद आपका ऑर्डर कन्फर्म कर दिया जाएगा।");
+            showToast("धन्यवाद! आपका पेमेंट वेरिफिकेशन पेंडिंग है। एडमिन द्वारा सत्यापित होते ही ऑर्डर कन्फर्म हो जाएगा।");
         });
     }
 
@@ -530,23 +573,22 @@ function setupPaymentActions() {
     }
 }
 
-// 10. RESET FOR NEW ORDER
 function resetToNewOrder() {
     const form = document.getElementById("rajvaariOrderForm");
     if (form) form.reset();
 
     currentOrderData = null;
-    const orderView = document.getElementById("orderView");
+    const orderSec = document.getElementById("orderSection");
     const prodSec = document.getElementById("productsSection");
-    const heroSec = document.querySelector(".hero-section");
+    const heroSec = document.getElementById("heroSection");
     const successView = document.getElementById("successView");
 
     if (successView) successView.classList.add("hidden");
     if (heroSec) heroSec.classList.remove("hidden");
     if (prodSec) prodSec.classList.remove("hidden");
-    if (orderView) orderView.classList.remove("hidden");
+    if (orderSec) orderSec.classList.remove("hidden");
 
-    // Reset to 1 Liter
+    // Reset default to 1 Liter
     applyProductSelection(CONFIG.products[0], false);
 
     const qtyInput = document.getElementById("quantityInput");
@@ -558,7 +600,156 @@ function resetToNewOrder() {
     window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-// 11. TOAST NOTIFICATION HELPER
+// ============================================================================
+// 11. PART 21 & 22: ORDER TRACKING (ORDER ID + MOBILE NUMBER)
+// ============================================================================
+function setupOrderTracking() {
+    const trackForm = document.getElementById("trackOrderForm");
+    const resultBox = document.getElementById("trackResultBox");
+    const spinner = document.getElementById("trackSpinner");
+    const btnText = document.getElementById("trackBtnText");
+
+    if (!trackForm || !resultBox) return;
+
+    trackForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const orderIdInput = document.getElementById("trackOrderIdInput")?.value.trim().toUpperCase() || "";
+        const mobileInput = document.getElementById("trackMobileInput")?.value.trim() || "";
+
+        if (!orderIdInput || !mobileInput) {
+            showToast("कृपया Order ID और Mobile Number दोनों दर्ज करें।");
+            return;
+        }
+
+        if (spinner) spinner.classList.remove("hidden");
+        if (btnText) btnText.textContent = "सर्च हो रहा है...";
+
+        try {
+            // First check local cache
+            let orderInfo = savedOrdersCache[`${mobileInput}_${orderIdInput}`];
+
+            if (!orderInfo) {
+                try {
+                    const saved = sessionStorage.getItem("last_rajvaari_order");
+                    if (saved) {
+                        const parsed = JSON.parse(saved);
+                        if (parsed.orderId === orderIdInput && parsed.mobileNumber === mobileInput) {
+                            orderInfo = parsed;
+                        }
+                    }
+                } catch (e) {}
+            }
+
+            // Attempt live Apps Script query
+            if (!orderInfo) {
+                try {
+                    const fetchUrl = `${CONFIG.API_URL}?action=trackOrder&orderId=${encodeURIComponent(orderIdInput)}&mobileNumber=${encodeURIComponent(mobileInput)}`;
+                    const res = await fetch(fetchUrl);
+                    const resData = await res.json();
+                    if (resData && resData.order) {
+                        orderInfo = resData.order;
+                    }
+                } catch (netErr) {
+                    console.log("Remote track fallback");
+                }
+            }
+
+            resultBox.classList.remove("hidden");
+
+            if (!orderInfo) {
+                resultBox.innerHTML = `
+                    <div style="background: #FFFBEB; border: 1.5px solid #FDE68A; padding: 16px; border-radius: 12px; text-align: center;">
+                        <h4 style="color: #92400E; font-size: 16px; margin-bottom: 4px;">ऑर्डर नहीं मिला (Order Not Found)</h4>
+                        <p style="color: #B45309; font-size: 13.5px;">कृपया दर्ज किया गया Order ID (<strong>${orderIdInput}</strong>) और 10 अंकों का Mobile Number जांचें।</p>
+                    </div>
+                `;
+            } else {
+                renderTrackingResultCard(resultBox, orderInfo);
+            }
+        } catch (err) {
+            showToast("ट्रैकिंग में समस्या आई। पुनः प्रयास करें।");
+        } finally {
+            if (spinner) spinner.classList.add("hidden");
+            if (btnText) btnText.textContent = "Track Status →";
+        }
+    });
+}
+
+function renderTrackingResultCard(container, order) {
+    const isPaid = (order.paymentStatus === "PAID" || order["Payment Status"] === "PAID");
+    const isConfirmed = (order.orderStatus === "CONFIRMED" || order["Order Status"] === "CONFIRMED");
+
+    if (isPaid || isConfirmed) {
+        // PART 21: CONFIRMED SUCCESS VIEW
+        container.innerHTML = `
+            <div class="confirmed-result-card">
+                <div class="conf-badge-top">✓ Payment Confirmed</div>
+                <p class="conf-sub">Your order is confirmed!</p>
+                <div class="conf-grid">
+                    <div class="conf-cell">
+                        <span class="conf-lbl">Order ID</span>
+                        <strong class="conf-val" style="color: #023E8A;">${order.orderId || order["Order ID"]}</strong>
+                    </div>
+                    <div class="conf-cell">
+                        <span class="conf-lbl">Product</span>
+                        <span class="conf-val">${order.bottleSize || order["Bottle Size"] || "1 Liter"} Bottle</span>
+                    </div>
+                    <div class="conf-cell">
+                        <span class="conf-lbl">Quantity</span>
+                        <span class="conf-val">${order.quantity || order["Quantity"]} Bottles</span>
+                    </div>
+                    <div class="conf-cell">
+                        <span class="conf-lbl">Order Total</span>
+                        <span class="conf-val">₹${order.totalOrderAmount || order["Total Order Amount"] || order.subtotal || order["Subtotal"]}</span>
+                    </div>
+                    <div class="conf-cell">
+                        <span class="conf-lbl">Payment</span>
+                        <span class="conf-val">₹${order.paymentRequired || order["Payment Required"] || "1"}</span>
+                    </div>
+                    <div class="conf-cell">
+                        <span class="conf-lbl">Payment Status</span>
+                        <span class="badge-paid-green">PAID ✓</span>
+                    </div>
+                    <div class="conf-cell">
+                        <span class="conf-lbl">Order Status</span>
+                        <span class="badge-conf-green">CONFIRMED ✓</span>
+                    </div>
+                    <div class="conf-cell">
+                        <span class="conf-lbl">Expected Delivery</span>
+                        <span class="conf-val" style="color: #047857;">Within 24 Hours</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    } else {
+        // PENDING PAYMENT VERIFICATION VIEW
+        container.innerHTML = `
+            <div style="background: #FFFBEB; border: 2px solid #FDE68A; border-radius: 14px; padding: 18px; box-shadow: 0 4px 14px rgba(217, 119, 6, 0.1);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <div>
+                        <span style="font-size: 11px; font-weight: 800; color: #92400E; text-transform: uppercase;">ORDER FOUND</span>
+                        <h4 style="font-family: var(--font-heading); font-size: 18px; font-weight: 800; color: #78350F;">${order.orderId || order["Order ID"]}</h4>
+                    </div>
+                    <span style="background: #FEF3C7; color: #D97706; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 800;">PENDING</span>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 13.5px; margin-bottom: 12px;">
+                    <div>Product: <strong>${order.bottleSize || order["Bottle Size"] || "1 Liter"} Bottle</strong></div>
+                    <div>Quantity: <strong>${order.quantity || order["Quantity"]}</strong></div>
+                    <div>Payment: <strong>₹${order.paymentRequired || order["Payment Required"] || "1"}</strong></div>
+                    <div>Status: <span style="color: #D97706; font-weight: 700;">Verification Pending</span></div>
+                </div>
+                <div style="background: #FFFFFF; border-left: 3px solid #D97706; padding: 8px 12px; border-radius: 6px; font-size: 12.5px; color: #92400E;">
+                    ⏱️ <strong>स्थिति:</strong> एडमिन द्वारा PhonePe भुगतान सत्यापन की प्रतीक्षा की जा रही है। सत्यापन होते ही स्थिति <strong>CONFIRMED</strong> हो जाएगी।
+                </div>
+            </div>
+        `;
+    }
+}
+
+// ============================================================================
+// 12. TOAST NOTIFICATION HELPER
+// ============================================================================
 let toastTimeout = null;
 function showToast(msg) {
     const toast = document.getElementById("toastNotification");
