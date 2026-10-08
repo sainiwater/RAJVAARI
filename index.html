@@ -45,6 +45,7 @@
                 </button>
                 <button type="button" class="nav-link-btn" data-target="profileView" id="tabProfile">
                     Profile
+                    <span class="nav-notif-badge hidden" id="badgeProfileNav">0</span>
                 </button>
             </nav>
 
@@ -644,6 +645,38 @@
                     </div>
 
                 </div>
+
+                <!-- USER'S ORDER HISTORY CARD (SHOWN IN PROFILE VIEW ONLY WITH PROFILE CARD & EDIT) -->
+                <div class="dashboard-card profile-history-card-wrapper" id="profileHistorySection">
+                    <div class="history-card-header">
+                        <div class="header-title-wrap">
+                            <span class="history-icon">📦</span>
+                            <div>
+                                <h3 class="card-main-title">My Orders</h3>
+                                <span class="history-subtitle">Your past orders and live delivery tracking</span>
+                            </div>
+                        </div>
+                        <button type="button" class="btn-refresh-mini" id="btnRefreshProfileOrders" title="Refresh Orders Status">
+                            🔄 Refresh
+                        </button>
+                    </div>
+
+                    <!-- Dynamic Orders List Container for Profile -->
+                    <div class="compact-orders-scroll-list" id="profileOrdersListContainer">
+                        <!-- Populated dynamically via app.js -->
+                    </div>
+
+                    <!-- Empty State for Profile Orders -->
+                    <div class="compact-empty-state hidden" id="emptyProfileOrdersCard">
+                        <span class="empty-icon-art">📦</span>
+                        <h4>No Orders Yet</h4>
+                        <p>Orders can be placed on the Home page.</p>
+                        <button type="button" class="btn-empty-order-cta" id="btnProfileGoHomeOrder">
+                            Go to Home to Order
+                        </button>
+                    </div>
+                </div>
+
             </div>
         </div>
 
@@ -751,7 +784,10 @@
             <span class="mob-caption">Order Now</span>
         </button>
         <button type="button" class="mob-nav-btn" data-target="profileView" id="bNavProfile">
-            <span class="mob-icon">👤</span>
+            <span class="mob-icon-wrapper">
+                <span class="mob-icon">👤</span>
+                <span class="nav-notif-badge mob-badge hidden" id="badgeMobProfileNav">0</span>
+            </span>
             <span class="mob-caption">Profile</span>
         </button>
     </nav>

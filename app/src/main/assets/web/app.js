@@ -52,6 +52,7 @@ const PRODUCTS = {
 // Storage Keys
 const STORAGE_ORDERS_KEY = "rajvaari_customer_orders_v3";
 const STORAGE_PROFILE_KEY = "rajvaari_saved_profile_v3";
+const STORAGE_SEEN_ORDERS_KEY = "rajvaari_seen_orders_v3";
 
 // ============================================================================
 // 2. STATE MANAGEMENT
@@ -183,6 +184,11 @@ function setupNavigation() {
                 b.classList.toggle("active", b.dataset.target === targetViewId);
             }
         });
+
+        // When user opens Profile, mark orders as seen and clear notification badge
+        if (targetViewId === "profileView") {
+            markAllOrdersAsSeen();
+        }
 
         window.scrollTo({ top: 0, behavior: "smooth" });
     }
@@ -607,6 +613,13 @@ async function handleOrderSubmission() {
             });
         }
 
+        // Lock order form system immediately so no duplicate clicks or entries can be submitted
+        if (btnPlaceOrder) {
+            btnPlaceOrder.disabled = true;
+            btnPlaceOrder.dataset.locked = "true";
+        }
+        if (btnOrderText) btnOrderText.textContent = "✓ Order Placed & Locked";
+
         // Reveal Payment Section on Home
         revealPaymentSection(activeCreatedOrder);
         showToast("✓ Order created! Please complete ₹1 verification payment.");
@@ -615,10 +628,13 @@ async function handleOrderSubmission() {
         showToast(err.message || "Unable to create order. Please try again.");
     } finally {
         isSubmittingOrder = false;
-        if (btnPlaceOrder) btnPlaceOrder.disabled = false;
         if (orderSpinner) orderSpinner.classList.add("hidden");
-        if (btnOrderText) btnOrderText.textContent = "Place Order →";
-        validateOrderForm();
+        // Keep button locked if order was placed successfully
+        if (btnPlaceOrder && btnPlaceOrder.dataset.locked !== "true") {
+            btnPlaceOrder.disabled = false;
+            if (btnOrderText) btnOrderText.textContent = "Place Order →";
+            validateOrderForm();
+        }
     }
 }
 
@@ -662,6 +678,16 @@ function setupPaymentActions() {
         document.getElementById("heroSection")?.classList.remove("hidden");
         document.getElementById("productsSection")?.classList.remove("hidden");
         document.getElementById("orderSection")?.classList.remove("hidden");
+
+        // Unlock order button for a new order
+        const btnPlaceOrder = document.getElementById("btnPlaceOrder");
+        const btnOrderText = document.getElementById("btnOrderText");
+        if (btnPlaceOrder) {
+            delete btnPlaceOrder.dataset.locked;
+        }
+        if (btnOrderText) btnOrderText.textContent = "Place Order →";
+        validateOrderForm();
+
         window.scrollTo({ top: 0, behavior: "smooth" });
     });
 }
@@ -795,10 +821,24 @@ function setupOrderTrackingAndDetails() {
         }
     });
 
-    // Refresh Orders Status Button
+    // Refresh Orders Status Button (Home page card)
     document.getElementById("btnRefreshOrders")?.addEventListener("click", async () => {
         showToast("Checking latest status from Google Sheet...");
         await checkOrdersLatestStatus();
+    });
+
+    // Refresh Orders Status Button (Profile page card)
+    document.getElementById("btnRefreshProfileOrders")?.addEventListener("click", async () => {
+        showToast("Checking latest status from Google Sheet...");
+        await checkOrdersLatestStatus();
+    });
+
+    // Go to Home to order button from Profile empty state
+    document.getElementById("btnProfileGoHomeOrder")?.addEventListener("click", () => {
+        document.getElementById("tabHome")?.click();
+        setTimeout(() => {
+            scrollToOrderSection();
+        }, 150);
     });
 
     // Close detail modal
@@ -808,10 +848,11 @@ function setupOrderTrackingAndDetails() {
 }
 
 function renderOrdersList() {
-    const container = document.getElementById("ordersListContainer");
-    const emptyCard = document.getElementById("emptyOrdersCard");
+    const homeContainer = document.getElementById("ordersListContainer");
+    const homeEmptyCard = document.getElementById("emptyOrdersCard");
 
-    if (!container) return;
+    const profileContainer = document.getElementById("profileOrdersListContainer");
+    const profileEmptyCard = document.getElementById("emptyProfileOrdersCard");
 
     let orders = getStoredOrders();
 
@@ -821,17 +862,21 @@ function renderOrdersList() {
     }
 
     if (orders.length === 0) {
-        container.innerHTML = "";
-        emptyCard?.classList.remove("hidden");
+        if (homeContainer) homeContainer.innerHTML = "";
+        if (homeEmptyCard) homeEmptyCard.classList.remove("hidden");
+        if (profileContainer) profileContainer.innerHTML = "";
+        if (profileEmptyCard) profileEmptyCard.classList.remove("hidden");
+        updateOrderNotificationBadge(0);
         return;
     }
 
-    emptyCard?.classList.add("hidden");
+    if (homeEmptyCard) homeEmptyCard.classList.add("hidden");
+    if (profileEmptyCard) profileEmptyCard.classList.add("hidden");
 
     let hasVerifiedOrder = false;
     let verifiedOrderId = "";
 
-    container.innerHTML = orders.map(o => {
+    const cardsHtml = orders.map(o => {
         if (o.paymentStatus === "YES") {
             hasVerifiedOrder = true;
             verifiedOrderId = o.orderId;
@@ -872,7 +917,10 @@ function renderOrdersList() {
         `;
     }).join("");
 
-    // Show verified alert banner if applicable
+    if (homeContainer) homeContainer.innerHTML = cardsHtml;
+    if (profileContainer) profileContainer.innerHTML = cardsHtml;
+
+    // Show verified alert banner if applicable on Home
     const alertBanner = document.getElementById("orderConfirmedAlert");
     const alertOrderId = document.getElementById("alertOrderId");
     if (alertBanner && alertOrderId) {
@@ -883,6 +931,53 @@ function renderOrdersList() {
             alertBanner.classList.add("hidden");
         }
     }
+
+    // Compute and refresh notification badge count for unseen orders
+    refreshUnseenOrdersBadge(orders);
+}
+
+// Notification Badge: Track orders seen by customer
+function getSeenOrderIds() {
+    try {
+        const raw = localStorage.getItem(STORAGE_SEEN_ORDERS_KEY);
+        return raw ? JSON.parse(raw) : [];
+    } catch (e) {
+        return [];
+    }
+}
+
+function refreshUnseenOrdersBadge(ordersList) {
+    const seenIds = getSeenOrderIds();
+    const unseenCount = ordersList.filter(o => !seenIds.includes(o.orderId)).length;
+    updateOrderNotificationBadge(unseenCount);
+}
+
+function updateOrderNotificationBadge(count) {
+    const deskBadge = document.getElementById("badgeProfileNav");
+    const mobBadge = document.getElementById("badgeMobProfileNav");
+
+    if (count > 0) {
+        if (deskBadge) {
+            deskBadge.textContent = count;
+            deskBadge.classList.remove("hidden");
+        }
+        if (mobBadge) {
+            mobBadge.textContent = count;
+            mobBadge.classList.remove("hidden");
+        }
+    } else {
+        if (deskBadge) deskBadge.classList.add("hidden");
+        if (mobBadge) mobBadge.classList.add("hidden");
+    }
+}
+
+function markAllOrdersAsSeen() {
+    const orders = getStoredOrders();
+    const allIds = orders.map(o => o.orderId);
+    try {
+        localStorage.setItem(STORAGE_SEEN_ORDERS_KEY, JSON.stringify(allIds));
+    } catch (e) {}
+    updateOrderNotificationBadge(0);
 }
 
 window.rajvaariViewOrder = function(orderId) {
