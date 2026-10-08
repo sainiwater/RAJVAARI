@@ -504,20 +504,21 @@ async function handleOrderSubmission() {
     const subtotal = price * activeQuantity;
 
     const firebaseUid = currentUser ? currentUser.uid : "";
-    const customerId = (currentCustomerProfile && currentCustomerProfile.customerId) ? currentCustomerProfile.customerId : "GUEST";
+    const customerId = (currentCustomerProfile && currentCustomerProfile.customerId) ? currentCustomerProfile.customerId : "";
 
     const payload = {
         action: "createOrder",
         customerName: custName,
         mobile: custMobile,
         mobileNumber: custMobile,
-        alternateNumber: custAltMobile,
+        alternateNumber: custAltMobile || "",
         fullAddress: custAddress,
-        villageArea: custVillage,
+        villageArea: custVillage || "",
         city: custCity,
-        district: custDistrict,
-        state: custState,
+        district: custDistrict || "",
+        state: custState || "Rajasthan",
         pinCode: custPincode,
+        pincode: custPincode,
         product: activeProduct.product,
         brand: activeProduct.brand,
         bottleSize: activeProduct.bottleSize,
@@ -528,7 +529,8 @@ async function handleOrderSubmission() {
         discount: 0,
         totalOrderAmount: subtotal,
         notes: custMessage || "Order created. Verification payment pending.",
-        customerMessage: custMessage,
+        customerMessage: custMessage || "",
+        firebaseUID: firebaseUid,
         firebaseUid: firebaseUid,
         customerId: customerId
     };
@@ -1151,6 +1153,9 @@ async function loadCustomerProfileFromFirestore(uid, email) {
         if (docSnap.exists) {
             currentCustomerProfile = docSnap.data();
             docRef.update({ lastLoginAt: new Date().toISOString() }).catch(() => {});
+
+            // Synchronize with Google Sheet Customers row
+            syncCustomerWithAppsScript("updateCustomerProfile", currentCustomerProfile);
         } else {
             const generatedCustId = "CUST-" + Math.floor(100000 + Math.random() * 900000);
             currentCustomerProfile = {
@@ -1235,28 +1240,57 @@ async function saveCustomerProfileToFirestore(fields) {
 
 // Call Google Apps Script API to synchronize Customers & Profile Updates sheets
 async function syncCustomerWithAppsScript(action, profileObj) {
+    if (!profileObj) return;
     try {
-        await fetch(API_URL, {
+        const uid = profileObj.firebaseUID || profileObj.firebaseUid || (currentUser ? currentUser.uid : "");
+        const cid = profileObj.customerId || "";
+        const mob = profileObj.mobile || profileObj.mobileNumber || "";
+        const email = profileObj.email || (currentUser ? currentUser.email : "");
+        const name = profileObj.name || (currentUser ? currentUser.displayName : "");
+
+        const payload = {
+            action: action, // "createCustomer" or "updateCustomerProfile"
+            // Support both uppercase and camelCase for Firebase UID & Customer ID
+            firebaseUID: uid,
+            firebaseUid: uid,
+            customerId: cid,
+            email: email,
+            name: name,
+            // Support both mobile and mobileNumber
+            mobile: mob,
+            mobileNumber: mob,
+            alternateNumber: profileObj.alternateNumber || "",
+            profilePhotoURL: profileObj.profilePhotoURL || profileObj.profilePhotoUrl || "",
+            profilePhotoUrl: profileObj.profilePhotoURL || profileObj.profilePhotoUrl || "",
+            fullAddress: profileObj.fullAddress || "",
+            villageArea: profileObj.villageArea || "",
+            city: profileObj.city || "",
+            district: profileObj.district || "",
+            state: profileObj.state || "Rajasthan",
+            pinCode: profileObj.pinCode || profileObj.pincode || "",
+            pincode: profileObj.pinCode || profileObj.pincode || "",
+            updatedBy: "CUSTOMER",
+            updateReason: "Profile updated via web"
+        };
+
+        const res = await fetch(API_URL, {
             method: "POST",
             headers: { "Content-Type": "text/plain;charset=utf-8" },
-            body: JSON.stringify({
-                action: action,
-                customerId: profileObj.customerId,
-                firebaseUid: profileObj.firebaseUid,
-                name: profileObj.name,
-                email: profileObj.email,
-                mobileNumber: profileObj.mobileNumber,
-                alternateNumber: profileObj.alternateNumber,
-                fullAddress: profileObj.fullAddress,
-                villageArea: profileObj.villageArea,
-                city: profileObj.city,
-                district: profileObj.district,
-                state: profileObj.state,
-                pinCode: profileObj.pinCode,
-                updatedBy: "CUSTOMER",
-                updateReason: "Profile update via web"
-            })
+            body: JSON.stringify(payload)
         });
+
+        const text = await res.text();
+        try {
+            const data = JSON.parse(text);
+            if (data.success && data.customer) {
+                // If backend assigned or updated customerId, update local state
+                if (data.customer.customerId && (!currentCustomerProfile || !currentCustomerProfile.customerId || currentCustomerProfile.customerId === "GUEST")) {
+                    currentCustomerProfile = { ...(currentCustomerProfile || {}), customerId: data.customer.customerId };
+                    try { localStorage.setItem(STORAGE_PROFILE_KEY, JSON.stringify(currentCustomerProfile)); } catch (e) {}
+                    updateProfileViewUI(currentCustomerProfile);
+                }
+            }
+        } catch (e) {}
     } catch (err) {
         console.warn("Apps Script customer sync note:", err);
     }
