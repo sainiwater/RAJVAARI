@@ -1,487 +1,842 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>RAJVAARI - शुद्ध पानी, भरोसे के साथ | Packaged Drinking Water</title>
-    <meta name="description" content="RAJVAARI Packaged Drinking Water - शुद्ध पानी, भरोसे के साथ। 1 Liter एवं 200ml बोतलें ऑनलाइन ऑर्डर करें।">
+    <meta name="description" content="RAJVAARI Packaged Drinking Water - शुद्ध पानी, भरोसे के साथ। Order 1 Liter (₹20) and 200ml (₹10) bottles online.">
+
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Stylesheet -->
     <link rel="stylesheet" href="styles.css">
+
+    <!-- Firebase Compat SDKs (V10) for Web, GitHub Pages & WebView -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
-    <!-- ROYAL AQUA Background Ambient Glow -->
-    <div class="aqua-bg-canvas">
+    <!-- Ambient Aqua Background Glow -->
+    <div class="aqua-bg-canvas" aria-hidden="true">
         <div class="glow-orb orb-top"></div>
         <div class="glow-orb orb-bottom"></div>
     </div>
 
-    <!-- FLOATING GLASS HEADER -->
-    <header class="glass-header" id="headerNav">
-        <div class="header-inner">
-            <a href="#heroSection" class="brand-link">
-                <span class="brand-drop">💧</span>
-                <div class="brand-info">
-                    <span class="brand-title">RAJVAARI</span>
-                    <span class="brand-tag">शुद्ध पानी, भरोसे के साथ</span>
+    <!-- MAIN HEADER NAVIGATION -->
+    <header class="app-header" id="appHeader">
+        <div class="header-container">
+            <!-- Brand Identity -->
+            <button type="button" class="brand-badge-btn" id="navBrandBtn" aria-label="RAJVAARI Home">
+                <span class="brand-drop-icon">💧</span>
+                <div class="brand-titles">
+                    <span class="brand-logo-text">RAJVAARI</span>
+                    <span class="brand-tagline-text">शुद्ध पानी, भरोसे के साथ</span>
                 </div>
-            </a>
+            </button>
 
-            <!-- Desktop Nav Menu -->
-            <nav class="nav-menu-desktop">
-                <a href="#heroSection" class="nav-item">HOME</a>
-                <a href="#productsSection" class="nav-item">PRODUCTS</a>
-                <a href="#orderSection" class="nav-item">ORDER</a>
+            <!-- Desktop Navigation Links -->
+            <nav class="nav-links-desktop" aria-label="Main Navigation">
+                <button type="button" class="nav-tab active" data-target="homeView" id="tabHome">
+                    Home
+                </button>
+                <button type="button" class="nav-tab" data-target="ordersView" id="tabOrders">
+                    Orders <span class="nav-orders-count hidden" id="navOrdersBadge">0</span>
+                </button>
+                <button type="button" class="nav-tab" data-target="profileView" id="tabProfile">
+                    Profile
+                </button>
             </nav>
 
-            <div class="header-right-action">
-                <a href="#orderSection" class="btn-header-cta">ORDER NOW</a>
-                <button type="button" class="mobile-toggle-btn" id="mobileToggleBtn" aria-label="Open navigation menu">
-                    <span class="toggle-bar"></span>
-                    <span class="toggle-bar"></span>
-                    <span class="toggle-bar"></span>
+            <!-- Header Right Actions: Account / Auth & Quick Order -->
+            <div class="header-actions">
+                <button type="button" class="btn-account-pill" id="btnAccountToggle">
+                    <span class="account-avatar-icon" id="accountAvatarIcon">👤</span>
+                    <span class="account-name-label" id="accountNameLabel">Login</span>
+                </button>
+                <button type="button" class="btn-primary-order-nav" id="btnHeaderOrderNow">
+                    Order Now →
                 </button>
             </div>
-        </div>
-
-        <!-- Mobile Menu Drawer -->
-        <div class="mobile-menu-drawer" id="mobileMenuDrawer">
-            <a href="#heroSection" class="mobile-nav-link">Home</a>
-            <a href="#productsSection" class="mobile-nav-link">Products</a>
-            <a href="#orderSection" class="mobile-nav-link">Order</a>
         </div>
     </header>
 
-    <main class="page-container">
-        <!-- ANIMATED HERO SECTION -->
-        <section class="hero-section" id="heroSection">
-            <div class="hero-left-col">
-                <div class="hero-badge">
-                    <span>💧</span>
-                    <span>PACKAGED DRINKING WATER</span>
-                </div>
-                <h1 class="hero-brand-name">RAJVAARI</h1>
-                <h2 class="hero-hindi-tagline">शुद्ध पानी, भरोसे के साथ</h2>
-                <p class="hero-subtext">Fresh water. Simple ordering.</p>
+    <!-- MAIN APP CONTENT (Tabbed Single Page Architecture) -->
+    <main class="main-wrapper" id="mainWrapper">
 
-                <div class="hero-cta-group">
-                    <a href="#orderSection" class="btn-royal-primary">ORDER WATER</a>
-                    <a href="#productsSection" class="btn-royal-secondary">VIEW BOTTLES</a>
-                </div>
-            </div>
+        <!-- =============================================================== -->
+        <!-- 1. HOME VIEW (Hero, Products, Order Form, Payment)             -->
+        <!-- =============================================================== -->
+        <div class="view-screen active" id="homeView">
 
-            <div class="hero-right-col">
-                <div class="hero-visual-stage">
-                    <div class="floating-drop drop-1"></div>
-                    <div class="floating-drop drop-2"></div>
-                    <div class="floating-drop drop-3"></div>
-                    <div class="water-ripple-ring"></div>
-
-                    <!-- Bottle Art Presentation -->
-                    <div class="hero-bottle-duo">
-                        <div class="bottle-figure figure-1l">
-                            <div class="b-cap"></div>
-                            <div class="b-neck"></div>
-                            <div class="b-shoulders"></div>
-                            <div class="b-body">
-                                <div class="b-shine"></div>
-                                <div class="b-label">
-                                    <span class="lbl-name">RAJVAARI</span>
-                                    <span class="lbl-size">1 Liter</span>
-                                </div>
-                            </div>
-                            <span class="figure-caption">1L Bottle</span>
+            <!-- HERO SECTION -->
+            <section class="hero-section" id="heroSection">
+                <div class="hero-content">
+                    <div class="hero-text-side">
+                        <div class="hero-eyebrow-pill">
+                            <span class="pill-sparkle">✨</span>
+                            <span>PACKAGED DRINKING WATER</span>
                         </div>
+                        <h1 class="hero-brand-headline">RAJVAARI</h1>
+                        <p class="hero-tagline-lead">शुद्ध पानी, भरोसे के साथ</p>
+                        <p class="hero-subtext">Fresh. Simple. Reliable. Premium purity with balanced minerals in tamper-evident bottles.</p>
 
-                        <div class="bottle-figure figure-200ml">
-                            <div class="b-cap"></div>
-                            <div class="b-neck"></div>
-                            <div class="b-shoulders"></div>
-                            <div class="b-body">
-                                <div class="b-shine"></div>
-                                <div class="b-label">
-                                    <span class="lbl-name">RAJVAARI</span>
-                                    <span class="lbl-size">200ml</span>
-                                </div>
-                            </div>
-                            <span class="figure-caption">200ml Bottle</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- PRODUCTS SECTION (2 SIMPLE SIZES ONLY) -->
-        <section class="products-section" id="productsSection">
-            <div class="section-title-wrap">
-                <h2 class="section-heading">Choose Your RAJVAARI</h2>
-                <p class="section-subheading">Two simple sizes. One simple order.</p>
-            </div>
-
-            <div class="products-grid">
-                <!-- CARD 1: 1 Liter Bottle -->
-                <div class="glass-product-card" id="cardProd1L">
-                    <div class="card-art-box">
-                        <div class="bottle-figure card-1l">
-                            <div class="b-cap"></div>
-                            <div class="b-neck"></div>
-                            <div class="b-shoulders"></div>
-                            <div class="b-body">
-                                <div class="b-shine"></div>
-                                <div class="b-label">
-                                    <span class="lbl-name">RAJVAARI</span>
-                                    <span class="lbl-size">1 Liter</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-meta">
-                        <span class="card-brand-label">RAJVAARI</span>
-                        <h3 class="card-title">1 Liter</h3>
-                        <div class="card-rate">
-                            <span class="rate-amount">₹20</span>
-                            <span class="rate-unit">/ Bottle</span>
-                        </div>
-                        <button type="button" class="btn-product-order" id="btnOrder1L">
-                            <span>ORDER 1L →</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- CARD 2: 200ml Bottle -->
-                <div class="glass-product-card" id="cardProd200ml">
-                    <div class="card-art-box">
-                        <div class="bottle-figure card-200ml">
-                            <div class="b-cap"></div>
-                            <div class="b-neck"></div>
-                            <div class="b-shoulders"></div>
-                            <div class="b-body">
-                                <div class="b-shine"></div>
-                                <div class="b-label">
-                                    <span class="lbl-name">RAJVAARI</span>
-                                    <span class="lbl-size">200ml</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-meta">
-                        <span class="card-brand-label">RAJVAARI</span>
-                        <h3 class="card-title">200ml</h3>
-                        <div class="card-rate">
-                            <span class="rate-amount">₹10</span>
-                            <span class="rate-unit">/ Bottle</span>
-                        </div>
-                        <button type="button" class="btn-product-order" id="btnOrder200ml">
-                            <span>ORDER 200ml →</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- ORDER FORM & STICKY LIVE SUMMARY (COMPACT 2-COLUMN) -->
-        <section class="order-section" id="orderSection">
-            <div class="order-panel-grid">
-                <!-- LEFT COLUMN: Customer Form -->
-                <div class="order-left-column">
-                    <div class="glass-form-card">
-                        <!-- Selected Product Banner -->
-                        <div class="selected-product-banner">
-                            <div class="sel-banner-left">
-                                <span class="sel-water-icon">💧</span>
-                                <div class="sel-banner-text">
-                                    <span class="sel-brand">RAJVAARI</span>
-                                    <h4 class="sel-size-title" id="selectedSizeTitle">1 Liter Bottle</h4>
-                                    <span class="sel-rate-tag" id="selectedRateTag">₹20 / Bottle</span>
-                                </div>
-                            </div>
-                            <button type="button" class="btn-change-selection" id="btnChangeProduct">
-                                Change Product
+                        <div class="hero-actions-row">
+                            <button type="button" class="btn-hero-cta" id="btnHeroOrder">
+                                Order Water Now →
+                            </button>
+                            <button type="button" class="btn-hero-secondary" id="btnHeroViewOrders">
+                                Track Existing Order
                             </button>
                         </div>
 
-                        <form id="orderForm" novalidate>
-                            <!-- Quantity Stepper -->
-                            <div class="form-row-block">
-                                <div class="stepper-header-row">
-                                    <label class="form-label-bold">Quantity (बोतलें) <span class="req">*</span></label>
-                                    <span class="rate-calc-note" id="rateCalcNote">₹20 × 1 = ₹20</span>
-                                </div>
-                                <div class="aqua-stepper">
-                                    <button type="button" class="step-btn" id="qtyMinus" aria-label="Decrease quantity">−</button>
-                                    <div class="step-val-wrap">
-                                        <input type="number" id="qtyInput" min="1" max="1000" value="1" required>
-                                        <span class="step-unit-lbl" id="qtyUnitText">Bottle</span>
+                        <!-- Brand Purity Guarantees -->
+                        <div class="hero-features-list">
+                            <div class="feature-badge">
+                                <span class="feat-icon">💧</span>
+                                <span>Multi-Stage Purified</span>
+                            </div>
+                            <div class="feature-badge">
+                                <span class="feat-icon">🛡️</span>
+                                <span>Contactless Bottling</span>
+                            </div>
+                            <div class="feature-badge">
+                                <span class="feat-icon">⚡</span>
+                                <span>Fast Local Delivery</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Hero Visual Presentation (Showing the 2 Bottles) -->
+                    <div class="hero-visual-side">
+                        <div class="visual-showcase-card">
+                            <div class="showcase-water-glow"></div>
+                            <div class="showcase-bottles-row">
+                                <!-- 1L Bottle Presentation -->
+                                <div class="showcase-bottle-item bottle-1l">
+                                    <div class="bottle-silhouette big-bottle">
+                                        <div class="bottle-cap"></div>
+                                        <div class="bottle-neck"></div>
+                                        <div class="bottle-body">
+                                            <div class="bottle-label-wrap">
+                                                <span class="lbl-drop">💧</span>
+                                                <span class="lbl-name">RAJVAARI</span>
+                                                <span class="lbl-size">1 Liter</span>
+                                            </div>
+                                            <div class="bottle-water-reflection"></div>
+                                        </div>
                                     </div>
-                                    <button type="button" class="step-btn" id="qtyPlus" aria-label="Increase quantity">+</button>
+                                    <div class="showcase-price-tag">
+                                        <span class="p-size">1 Liter</span>
+                                        <span class="p-val">₹20</span>
+                                    </div>
                                 </div>
-                                <div class="form-error" id="qtyError"></div>
+
+                                <!-- 200ml Bottle Presentation -->
+                                <div class="showcase-bottle-item bottle-200ml">
+                                    <div class="bottle-silhouette small-bottle">
+                                        <div class="bottle-cap"></div>
+                                        <div class="bottle-neck"></div>
+                                        <div class="bottle-body">
+                                            <div class="bottle-label-wrap">
+                                                <span class="lbl-drop">💧</span>
+                                                <span class="lbl-name">RAJVAARI</span>
+                                                <span class="lbl-size">200ml</span>
+                                            </div>
+                                            <div class="bottle-water-reflection"></div>
+                                        </div>
+                                    </div>
+                                    <div class="showcase-price-tag">
+                                        <span class="p-size">200ml</span>
+                                        <span class="p-val">₹10</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="showcase-caption">100% Genuine Sealed Packaged Drinking Water</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PRODUCT SECTION (EXACTLY TWO PRODUCTS) -->
+            <section class="products-section" id="productsSection">
+                <div class="section-title-wrap">
+                    <span class="section-eyebrow">OUR OFFICIAL PACKAGING</span>
+                    <h2 class="section-main-heading">RAJVAARI Drinking Water</h2>
+                    <p class="section-lead-text">अपना bottle size चुनें — Select your preferred bottle size</p>
+                </div>
+
+                <div class="products-cards-grid">
+                    <!-- CARD 1: 1 LITER BOTTLE -->
+                    <div class="product-card" id="cardProd1L">
+                        <div class="prod-badge-popular">MOST POPULAR</div>
+                        <div class="prod-visual-area">
+                            <div class="prod-bottle-icon bottle-icon-1l">
+                                <div class="v-bottle-cap"></div>
+                                <div class="v-bottle-neck"></div>
+                                <div class="v-bottle-body">
+                                    <span class="v-bottle-water-shine"></span>
+                                    <div class="v-label">
+                                        <span class="v-brand">RAJVAARI</span>
+                                        <span class="v-size">1 Liter</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="prod-details-area">
+                            <div class="prod-brand-tag">RAJVAARI</div>
+                            <h3 class="prod-name-title">1 Liter Bottle</h3>
+                            <div class="prod-price-line">
+                                <span class="prod-currency">₹</span>
+                                <span class="prod-price-number">20</span>
+                                <span class="prod-price-unit">/ Bottle</span>
                             </div>
 
-                            <!-- Customer Information -->
-                            <div class="form-row-block">
-                                <h4 class="block-title">Customer Information</h4>
+                            <p class="prod-desc">Pure, mineral balanced drinking water for homes, offices, travel and events.</p>
+
+                            <!-- Quantity Stepper on Card -->
+                            <div class="card-stepper-row">
+                                <label class="stepper-label" for="qtyCard1L">Quantity:</label>
+                                <div class="stepper-controls">
+                                    <button type="button" class="btn-step" id="btnMinusCard1L" aria-label="Decrease 1L quantity">−</button>
+                                    <input type="number" id="qtyCard1L" class="input-step" value="1" min="1" max="500" readonly>
+                                    <button type="button" class="btn-step" id="btnPlusCard1L" aria-label="Increase 1L quantity">+</button>
+                                </div>
+                            </div>
+
+                            <button type="button" class="btn-card-order" id="btnOrder1L">
+                                Order Now →
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- CARD 2: 200ML BOTTLE -->
+                    <div class="product-card" id="cardProd200ml">
+                        <div class="prod-badge-compact">EVENTS & TRAVEL</div>
+                        <div class="prod-visual-area">
+                            <div class="prod-bottle-icon bottle-icon-200ml">
+                                <div class="v-bottle-cap"></div>
+                                <div class="v-bottle-neck"></div>
+                                <div class="v-bottle-body compact-body">
+                                    <span class="v-bottle-water-shine"></span>
+                                    <div class="v-label">
+                                        <span class="v-brand">RAJVAARI</span>
+                                        <span class="v-size">200ml</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="prod-details-area">
+                            <div class="prod-brand-tag">RAJVAARI</div>
+                            <h3 class="prod-name-title">200ml Bottle</h3>
+                            <div class="prod-price-line">
+                                <span class="prod-currency">₹</span>
+                                <span class="prod-price-number">10</span>
+                                <span class="prod-price-unit">/ Bottle</span>
+                            </div>
+
+                            <p class="prod-desc">Compact size, zero wastage. Ideal for conferences, parties, catering and hospitality.</p>
+
+                            <!-- Quantity Stepper on Card -->
+                            <div class="card-stepper-row">
+                                <label class="stepper-label" for="qtyCard200ml">Quantity:</label>
+                                <div class="stepper-controls">
+                                    <button type="button" class="btn-step" id="btnMinusCard200ml" aria-label="Decrease 200ml quantity">−</button>
+                                    <input type="number" id="qtyCard200ml" class="input-step" value="1" min="1" max="1000" readonly>
+                                    <button type="button" class="btn-step" id="btnPlusCard200ml" aria-label="Increase 200ml quantity">+</button>
+                                </div>
+                            </div>
+
+                            <button type="button" class="btn-card-order" id="btnOrder200ml">
+                                Order Now →
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ORDER CHECKOUT SECTION (Revealed / Focused on Product Click) -->
+            <section class="order-checkout-section" id="orderSection">
+                <div class="checkout-container">
+                    <div class="checkout-header-bar">
+                        <div class="checkout-header-info">
+                            <span class="checkout-step-badge">FAST CHECKOUT</span>
+                            <h2 class="checkout-main-title">Delivery & Order Form</h2>
+                            <p class="checkout-sub">कृपया अपना सही डिलीवरी पता भरें — Please provide accurate delivery information</p>
+                        </div>
+                        <div class="checkout-user-status" id="checkoutUserBadge">
+                            <span class="status-indicator">●</span>
+                            <span id="checkoutUserText">Guest Checkout (Login to save profile)</span>
+                        </div>
+                    </div>
+
+                    <div class="checkout-grid-layout">
+                        <!-- LEFT COLUMN: CUSTOMER DELIVERY DETAILS FORM -->
+                        <div class="checkout-form-column">
+                            <form id="orderForm" novalidate onsubmit="return false;">
                                 
-                                <div class="input-group">
-                                    <label for="custName">Full Name <span class="req">*</span></label>
-                                    <input type="text" id="custName" placeholder="आपका पूरा नाम" required autocomplete="name">
-                                    <div class="form-error" id="nameError"></div>
+                                <div class="form-section-title">
+                                    <span class="form-sec-num">1</span>
+                                    <span>Contact Information</span>
                                 </div>
 
-                                <div class="input-grid-2">
-                                    <div class="input-group">
-                                        <label for="custMobile">Mobile Number <span class="req">*</span></label>
-                                        <div class="phone-input-wrap">
-                                            <span class="phone-prefix">+91</span>
-                                            <input type="tel" id="custMobile" maxlength="10" placeholder="10-digit number" required autocomplete="tel">
+                                <div class="form-row-two">
+                                    <!-- Customer Name -->
+                                    <div class="form-group" id="groupCustName">
+                                        <label for="custName" class="form-label">
+                                            Full Name <span class="req">*</span>
+                                        </label>
+                                        <input type="text" id="custName" class="form-control" placeholder="Enter your full name" autocomplete="name" required>
+                                        <span class="field-error-msg" id="errCustName">Please enter your name</span>
+                                    </div>
+
+                                    <!-- Mobile Number -->
+                                    <div class="form-group" id="groupCustMobile">
+                                        <label for="custMobile" class="form-label">
+                                            Mobile Number <span class="req">*</span>
+                                        </label>
+                                        <div class="input-prefix-box">
+                                            <span class="input-prefix">+91</span>
+                                            <input type="tel" id="custMobile" class="form-control with-prefix" placeholder="10-digit mobile number" maxlength="10" autocomplete="tel" required>
                                         </div>
-                                        <div class="form-error" id="mobileError"></div>
+                                        <span class="field-error-msg" id="errCustMobile">Mobile number must be 10 digits</span>
                                     </div>
+                                </div>
 
-                                    <div class="input-group">
-                                        <label for="custAltMobile">Alternate Number</label>
-                                        <div class="phone-input-wrap">
-                                            <span class="phone-prefix">+91</span>
-                                            <input type="tel" id="custAltMobile" maxlength="10" placeholder="वैकल्पिक नंबर (यदि है)">
+                                <div class="form-row-one">
+                                    <!-- Alternate Number (Optional) -->
+                                    <div class="form-group" id="groupCustAltMobile">
+                                        <label for="custAltMobile" class="form-label">
+                                            Alternate Number <span class="opt">(Optional)</span>
+                                        </label>
+                                        <div class="input-prefix-box">
+                                            <span class="input-prefix">+91</span>
+                                            <input type="tel" id="custAltMobile" class="form-control with-prefix" placeholder="Optional 10-digit alternate number" maxlength="10">
                                         </div>
-                                        <div class="form-error" id="altMobileError"></div>
+                                        <span class="field-error-msg" id="errCustAltMobile">Alternate number must be 10 digits</span>
                                     </div>
                                 </div>
+
+                                <div class="form-section-title">
+                                    <span class="form-sec-num">2</span>
+                                    <span>Delivery Address</span>
+                                </div>
+
+                                <!-- Full Address -->
+                                <div class="form-group" id="groupCustAddress">
+                                    <label for="custAddress" class="form-label">
+                                        Full Address (House / Shop / Street) <span class="req">*</span>
+                                    </label>
+                                    <textarea id="custAddress" class="form-control" rows="2" placeholder="House/Shop No., Street, Landmark" required></textarea>
+                                    <span class="field-error-msg" id="errCustAddress">Please enter your full address</span>
+                                </div>
+
+                                <div class="form-row-two">
+                                    <!-- Village / Area -->
+                                    <div class="form-group" id="groupCustVillage">
+                                        <label for="custVillage" class="form-label">
+                                            Village / Area <span class="req">*</span>
+                                        </label>
+                                        <input type="text" id="custVillage" class="form-control" placeholder="Village or Area name" required>
+                                        <span class="field-error-msg" id="errCustVillage">Please enter village / area</span>
+                                    </div>
+
+                                    <!-- City -->
+                                    <div class="form-group" id="groupCustCity">
+                                        <label for="custCity" class="form-label">
+                                            City <span class="req">*</span>
+                                        </label>
+                                        <input type="text" id="custCity" class="form-control" placeholder="City name" required>
+                                        <span class="field-error-msg" id="errCustCity">Please enter city</span>
+                                    </div>
+                                </div>
+
+                                <div class="form-row-three">
+                                    <!-- District -->
+                                    <div class="form-group" id="groupCustDistrict">
+                                        <label for="custDistrict" class="form-label">
+                                            District <span class="req">*</span>
+                                        </label>
+                                        <input type="text" id="custDistrict" class="form-control" placeholder="District" required>
+                                        <span class="field-error-msg" id="errCustDistrict">Please enter district</span>
+                                    </div>
+
+                                    <!-- State -->
+                                    <div class="form-group" id="groupCustState">
+                                        <label for="custState" class="form-label">
+                                            State <span class="req">*</span>
+                                        </label>
+                                        <input type="text" id="custState" class="form-control" value="Rajasthan" required>
+                                        <span class="field-error-msg" id="errCustState">Please enter state</span>
+                                    </div>
+
+                                    <!-- PIN Code -->
+                                    <div class="form-group" id="groupCustPincode">
+                                        <label for="custPincode" class="form-label">
+                                            PIN Code <span class="req">*</span>
+                                        </label>
+                                        <input type="tel" id="custPincode" class="form-control" placeholder="6 digits" maxlength="6" required>
+                                        <span class="field-error-msg" id="errCustPincode">PIN code must be 6 digits</span>
+                                    </div>
+                                </div>
+
+                                <div class="form-section-title">
+                                    <span class="form-sec-num">3</span>
+                                    <span>Special Instructions</span>
+                                </div>
+
+                                <!-- Customer Message (Optional) -->
+                                <div class="form-group">
+                                    <label for="custMessage" class="form-label">
+                                        Customer Message <span class="opt">(Optional)</span>
+                                    </label>
+                                    <input type="text" id="custMessage" class="form-control" placeholder="e.g. Deliver before 2 PM, Ring the bell, etc.">
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- RIGHT COLUMN: ORDER SUMMARY & CALCULATIONS -->
+                        <div class="checkout-summary-column">
+                            <div class="summary-card">
+                                <div class="summary-card-header">
+                                    <h3 class="summary-card-title">Order Summary</h3>
+                                    <span class="badge-brand-verified">RAJVAARI</span>
+                                </div>
+
+                                <!-- Selected Product Display (Pre-populated, no duplicate dropdown) -->
+                                <div class="selected-product-box">
+                                    <div class="sel-prod-left">
+                                        <span class="sel-drop-icon">💧</span>
+                                        <div>
+                                            <div class="sel-brand">RAJVAARI Drinking Water</div>
+                                            <div class="sel-size-badge" id="dispBottleSize">1 Liter</div>
+                                        </div>
+                                    </div>
+                                    <div class="sel-prod-right">
+                                        <span class="sel-rate" id="dispPricePerBottle">₹20</span>
+                                        <span class="sel-rate-unit">per bottle</span>
+                                    </div>
+                                </div>
+
+                                <!-- Quantity Controls in Checkout -->
+                                <div class="summary-quantity-row">
+                                    <span class="sum-qty-label">Quantity:</span>
+                                    <div class="stepper-controls">
+                                        <button type="button" class="btn-step" id="btnMinusCheckout" aria-label="Decrease quantity">−</button>
+                                        <input type="number" id="inputCheckoutQty" class="input-step" value="1" min="1" max="1000">
+                                        <button type="button" class="btn-step" id="btnPlusCheckout" aria-label="Increase quantity">+</button>
+                                    </div>
+                                </div>
+
+                                <!-- Financial Breakdown -->
+                                <div class="breakdown-table">
+                                    <div class="breakdown-row">
+                                        <span class="breakdown-label">Price per Bottle:</span>
+                                        <span class="breakdown-val" id="sumPricePerBottle">₹20</span>
+                                    </div>
+                                    <div class="breakdown-row">
+                                        <span class="breakdown-label">Quantity:</span>
+                                        <span class="breakdown-val" id="sumQuantity">1</span>
+                                    </div>
+                                    <div class="breakdown-row">
+                                        <span class="breakdown-label">Subtotal:</span>
+                                        <span class="breakdown-val" id="sumSubtotal">₹20</span>
+                                    </div>
+                                    <div class="breakdown-row">
+                                        <span class="breakdown-label">Delivery Charge:</span>
+                                        <span class="breakdown-val text-free">FREE (₹0)</span>
+                                    </div>
+                                    <div class="breakdown-row">
+                                        <span class="breakdown-label">Discount:</span>
+                                        <span class="breakdown-val">₹0</span>
+                                    </div>
+                                    <div class="breakdown-divider"></div>
+                                    <div class="breakdown-row total-row">
+                                        <span class="total-label">Total Order Amount:</span>
+                                        <span class="total-val" id="sumTotalOrderAmount">₹20</span>
+                                    </div>
+                                </div>
+
+                                <!-- Order Verification Policy Note -->
+                                <div class="summary-policy-box">
+                                    <div class="policy-item">
+                                        <span class="pol-icon">✓</span>
+                                        <span>Order saved directly to official Google Sheet.</span>
+                                    </div>
+                                    <div class="policy-item">
+                                        <span class="pol-icon">✓</span>
+                                        <span>₹1 verification payment via PhonePe QR after placing order.</span>
+                                    </div>
+                                </div>
+
+                                <!-- Validation Notice (shows if form is incomplete) -->
+                                <div class="validation-alert-box" id="validationNotice">
+                                    ⚠️ Please complete all required fields above to enable order submission.
+                                </div>
+
+                                <!-- SUBMIT BUTTON (Disabled until form is valid) -->
+                                <button type="button" class="btn-submit-order" id="btnPlaceOrder" disabled>
+                                    <span class="btn-spinner hidden" id="orderSpinner"></span>
+                                    <span id="btnPlaceOrderText">PLACE ORDER (₹20) →</span>
+                                </button>
+                                <p class="submit-help-text">Clicking Place Order reserves your bottles and creates your Order ID.</p>
                             </div>
-
-                            <!-- Delivery Address -->
-                            <div class="form-row-block">
-                                <h4 class="block-title">Delivery Address</h4>
-
-                                <div class="input-group">
-                                    <label for="custAddress">Full Address <span class="req">*</span></label>
-                                    <textarea id="custAddress" rows="2" placeholder="मकान / दुकान नं., सड़क, लैंडमार्क" required></textarea>
-                                    <div class="form-error" id="addressError"></div>
-                                </div>
-
-                                <div class="input-grid-2">
-                                    <div class="input-group">
-                                        <label for="custVillage">Village / Area</label>
-                                        <input type="text" id="custVillage" placeholder="गांव, कॉलोनी या इलाका">
-                                    </div>
-
-                                    <div class="input-group">
-                                        <label for="custCity">City <span class="req">*</span></label>
-                                        <input type="text" id="custCity" placeholder="शहर" required>
-                                        <div class="form-error" id="cityError"></div>
-                                    </div>
-                                </div>
-
-                                <div class="input-grid-3">
-                                    <div class="input-group">
-                                        <label for="custDistrict">District <span class="req">*</span></label>
-                                        <input type="text" id="custDistrict" placeholder="जिला" required>
-                                        <div class="form-error" id="districtError"></div>
-                                    </div>
-
-                                    <div class="input-group">
-                                        <label for="custState">State <span class="req">*</span></label>
-                                        <input type="text" id="custState" placeholder="राज्य" value="Rajasthan" required>
-                                        <div class="form-error" id="stateError"></div>
-                                    </div>
-
-                                    <div class="input-group">
-                                        <label for="custPin">PIN Code <span class="req">*</span></label>
-                                        <input type="tel" id="custPin" maxlength="6" placeholder="6-digit PIN" required>
-                                        <div class="form-error" id="pinError"></div>
-                                    </div>
-                                </div>
-
-                                <div class="input-group" style="margin-top: 10px;">
-                                    <label for="custNotes">Customer Message</label>
-                                    <input type="text" id="custNotes" placeholder="डिलीवरी समय या विशेष निर्देश (optional)">
-                                </div>
-                            </div>
-                        </form>
+                        </div>
                     </div>
                 </div>
+            </section>
 
-                <!-- RIGHT COLUMN: Sticky Live Order Summary -->
-                <div class="order-right-column">
-                    <div class="glass-summary-card">
-                        <div class="summary-top-row">
-                            <h3 class="summary-card-title">YOUR ORDER</h3>
-                            <span class="live-pill">Live Total</span>
-                        </div>
-
-                        <div class="summary-line-item">
-                            <span class="item-name">RAJVAARI Drinking Water</span>
-                            <div class="item-calc-breakdown">
-                                <span id="summarySizeAndQty">1 Liter × 1</span>
-                                <span class="calc-sub" id="summaryRateCalc">₹20 × 1</span>
+            <!-- PAYMENT SECTION (Shown ONLY after successful order creation) -->
+            <section class="payment-section hidden" id="paymentSection">
+                <div class="payment-card-centered">
+                    <!-- Order Received Status Banner -->
+                    <div class="order-success-banner">
+                        <div class="banner-icon-circle">✓</div>
+                        <div class="banner-content">
+                            <span class="banner-sub-tag">RECORDED IN GOOGLE SHEET</span>
+                            <h2 class="banner-heading">ORDER RECEIVED</h2>
+                            <div class="banner-order-id-wrap">
+                                <span>Order ID:</span>
+                                <strong id="dispCreatedOrderId">RAJ-XXXXXXXX</strong>
+                            </div>
+                            <div class="banner-badges-row">
+                                <span class="badge-status-item">Payment Status: <strong class="badge-pending">PENDING</strong></span>
+                                <span class="badge-status-item">Order Status: <strong class="badge-pending">PENDING</strong></span>
                             </div>
                         </div>
+                    </div>
 
-                        <div class="summary-divider"></div>
-
-                        <div class="finance-rows">
-                            <div class="f-row">
-                                <span class="f-label">Subtotal</span>
-                                <strong class="f-val" id="summarySubtotal">₹20</strong>
+                    <!-- Payment Verification Box -->
+                    <div class="payment-verify-card">
+                        <div class="verify-header">
+                            <div>
+                                <span class="verify-eyebrow">VERIFY YOUR ORDER</span>
+                                <h3 class="verify-title">Complete ₹1 Verification Payment</h3>
+                                <p class="verify-sub">Scan the PhonePe QR to complete verification payment.</p>
                             </div>
-                            <div class="f-row">
-                                <span class="f-label">Delivery</span>
-                                <span class="f-val text-aqua" id="summaryDelivery">FREE</span>
-                            </div>
-                            <div class="f-row">
-                                <span class="f-label">Discount</span>
-                                <span class="f-val text-aqua" id="summaryDiscount">₹0</span>
-                            </div>
+                            <div class="verify-amount-tag">₹1</div>
                         </div>
 
-                        <div class="summary-divider thick"></div>
-
-                        <div class="total-row-display">
-                            <span class="total-label">TOTAL</span>
-                            <span class="total-number" id="summaryTotal">₹20</span>
-                        </div>
-
-                        <div class="verify-payment-callout">
-                            <div class="callout-icon">ℹ️</div>
-                            <div class="callout-copy">
-                                <span>Verification Payment: <strong>₹1</strong></span>
-                                <small>Note: ₹1 is NOT added to product total.</small>
+                        <!-- Existing Payment QR Area (Unmodified / Uncropped) -->
+                        <div class="phonepe-qr-area">
+                            <div class="qr-brand-tag">PAY ₹1 TO VERIFY ORDER</div>
+                            <div class="payee-badge">Prakash Saini</div>
+                            <div class="qr-image-container">
+                                <img src="assets/phonepe-payment-qr.jpg" alt="PhonePe QR Code - Prakash Saini" class="phonepe-qr-asset" id="phonepeQrAsset">
                             </div>
+                            <span class="qr-amount-indicator">Verification Amount: <strong>₹1</strong></span>
                         </div>
 
-                        <div class="action-submit-box">
-                            <button type="button" class="btn-royal-submit" id="btnPlaceOrder">
-                                <span class="btn-spinner hidden" id="orderSpinner"></span>
-                                <span id="btnSubmitText">PLACE ORDER →</span>
+                        <!-- UTR / Transaction Submission Box -->
+                        <div class="utr-submit-box">
+                            <h4 class="utr-title">Submit Transaction / UTR Number (Optional)</h4>
+                            <p class="utr-sub">पेमेंट पूर्ण करने के बाद PhonePe से 12 अंकों का UTR / Transaction ID दर्ज करें:</p>
+                            
+                            <div class="utr-input-row">
+                                <input type="text" id="utrInput" class="form-control utr-input" placeholder="Enter Transaction / UTR Number" maxlength="30">
+                                <button type="button" class="btn-submit-utr" id="btnSubmitUtr">
+                                    <span class="btn-spinner hidden" id="utrSpinner"></span>
+                                    <span id="utrBtnText">SUBMIT PAYMENT DETAILS</span>
+                                </button>
+                            </div>
+                            <div class="utr-feedback-msg" id="utrFeedbackMsg"></div>
+                        </div>
+
+                        <!-- Admin Verification Guidance Policy -->
+                        <div class="admin-notice-box">
+                            <p class="notice-title">⏱️ <strong>Admin Verification Policy:</strong></p>
+                            <p>Payment details submitted. Payment Status remains <strong>PENDING</strong>.</p>
+                            <p>Admin will verify the payment in Google Sheet (PENDING → YES). Once verified, your order status changes to <strong>CONFIRMED</strong> with delivery processed within 24 hours.</p>
+                        </div>
+
+                        <div class="payment-actions-footer">
+                            <button type="button" class="btn-secondary-action" id="btnViewMyOrdersFromPay">
+                                View In My Orders →
                             </button>
-                            <p class="api-status-notice" id="apiStatusNotice"></p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- ORDER SUCCESS & PHONEPE QR PAYMENT PANEL (Revealed after API Order Save) -->
-        <section class="payment-section hidden" id="paymentSection">
-            <div class="payment-centered-card">
-                <!-- Order Received Status Banner -->
-                <div class="order-success-banner">
-                    <div class="banner-icon">✓</div>
-                    <div class="banner-text">
-                        <span class="banner-super">ORDER SAVED IN GOOGLE SHEET</span>
-                        <h2 class="banner-heading">✓ ORDER RECEIVED</h2>
-                        <div class="banner-order-id">Order ID: <strong id="dispOrderId">RAJ-XXXXXXXX</strong></div>
-                        <p class="banner-status-msg">
-                            Payment Status: <strong class="badge-pending">PENDING</strong><br>
-                            आपका order सफलतापूर्वक प्राप्त हो गया है। ₹1 verification payment करें।
-                        </p>
-                    </div>
-                </div>
-
-                <!-- PhonePe QR Verification Card -->
-                <div class="phonepe-verify-card">
-                    <div class="verify-header">
-                        <div>
-                            <span class="verify-eyebrow">VERIFY YOUR ORDER</span>
-                            <h3 class="verify-title">Complete ₹1 Verification Payment</h3>
-                            <p class="verify-sub">Scan the PhonePe QR to complete verification payment.</p>
-                        </div>
-                        <div class="amount-tag-fixed">₹1</div>
-                    </div>
-
-                    <!-- Fixed Uploaded PhonePe QR Image -->
-                    <div class="phonepe-qr-presentation">
-                        <div class="qr-brand-tag">PAY ₹1 TO VERIFY ORDER</div>
-                        <div class="payee-badge">Prakash Saini</div>
-                        <div class="qr-image-wrapper">
-                            <img src="assets/phonepe-payment-qr.jpg" alt="PhonePe QR Code - Prakash Saini" class="phonepe-qr-asset" id="phonepeQrAsset">
-                        </div>
-                        <span class="qr-amount-indicator">Verification Amount: <strong>₹1</strong></span>
-                    </div>
-
-                    <!-- UTR / Transaction Submission Box -->
-                    <div class="utr-submission-box">
-                        <h4 class="utr-box-title">Submit Transaction / UTR Number</h4>
-                        <p class="utr-box-sub">पेमेंट पूर्ण करने के बाद PhonePe से 12 अंकों का UTR / Transaction ID दर्ज करें:</p>
-                        
-                        <div class="utr-input-row">
-                            <input type="text" id="utrInput" placeholder="Enter Transaction / UTR Number" maxlength="30">
-                            <button type="button" class="btn-submit-utr" id="btnSubmitUtr">
-                                <span class="btn-spinner hidden" id="utrSpinner"></span>
-                                <span id="utrBtnText">SUBMIT PAYMENT DETAILS</span>
+                            <button type="button" class="btn-new-order-link" id="btnPlaceAnotherOrder">
+                                + Place Another Order
                             </button>
                         </div>
-                        <div class="utr-feedback-msg" id="utrFeedbackMsg"></div>
                     </div>
+                </div>
+            </section>
+        </div>
 
-                    <!-- Admin Verification Guidance Notice -->
-                    <div class="admin-verify-notice">
-                        <p>⏱️ <strong>Admin Verification Policy:</strong></p>
-                        <p>Payment details submitted. Payment Status remains <strong>PENDING</strong>.</p>
-                        <p>Admin will verify the payment in Google Sheet (PENDING → YES). Once verified, you will receive a confirmation SMS and delivery will be processed within 24 hours.</p>
+        <!-- =============================================================== -->
+        <!-- 2. MY ORDERS VIEW (Customer Orders, Status, Timeline)           -->
+        <!-- =============================================================== -->
+        <div class="view-screen hidden" id="ordersView">
+            <div class="section-container">
+                <div class="view-header-bar">
+                    <div>
+                        <span class="view-eyebrow">ORDER TRACKING</span>
+                        <h2 class="view-title">My Orders</h2>
+                        <p class="view-sub">Track all your RAJVAARI water orders and real-time delivery status</p>
                     </div>
+                    <button type="button" class="btn-refresh-orders" id="btnRefreshOrders">
+                        🔄 Refresh Status
+                    </button>
+                </div>
 
-                    <div class="payment-actions-footer">
-                        <button type="button" class="btn-new-order-clean" id="btnStartNewOrder">
-                            Place Another Order
+                <!-- Live Status Check Bar by Order ID -->
+                <div class="track-lookup-card">
+                    <div class="lookup-input-row">
+                        <input type="text" id="inputTrackOrderId" class="form-control" placeholder="Enter Order ID (e.g. RAJ-XXXXXXXX)">
+                        <button type="button" class="btn-lookup" id="btnLookupOrder">
+                            <span class="btn-spinner hidden" id="lookupSpinner"></span>
+                            <span>Track Order</span>
                         </button>
                     </div>
+                    <div class="lookup-feedback-msg" id="lookupFeedback"></div>
                 </div>
-            </div>
-        </section>
-    </main>
 
-    <!-- COMPACT FOOTER WITH MODAL TRIGGER -->
-    <footer class="app-compact-footer">
-        <div class="footer-inner-content">
-            <div class="footer-brand-line">
-                <span class="footer-drop">💧</span>
-                <span class="footer-name">RAJVAARI</span>
-                <span class="footer-tagline">शुद्ध पानी, भरोसे के साथ</span>
-            </div>
-            <div class="footer-sub-line">
-                <span>Packaged Drinking Water</span>
-                <span class="footer-sep">•</span>
-                <button type="button" class="btn-open-track-modal" id="btnOpenTrackModal">
-                    🔎 Track My Order
-                </button>
-            </div>
-            <div class="footer-copy-text">
-                © 2026 RAJVAARI. All Rights Reserved.
+                <!-- Order Confirmation Banner (Shown when admin verifies payment) -->
+                <div class="order-confirmed-banner hidden" id="orderConfirmedAlert">
+                    <div class="alert-icon">🎉</div>
+                    <div class="alert-text">
+                        <h4 class="alert-heading">Order Confirmed!</h4>
+                        <p id="alertConfirmedDetails">Order ID: <strong id="alertOrderId">RAJ-XXXX</strong> • Payment Verified • Expected delivery within 24 hours</p>
+                    </div>
+                </div>
+
+                <!-- Orders List Container -->
+                <div class="orders-list-container" id="ordersListContainer">
+                    <!-- Populated dynamically via JS -->
+                </div>
+
+                <!-- Empty Orders Placeholder -->
+                <div class="empty-orders-card hidden" id="emptyOrdersCard">
+                    <span class="empty-icon">📦</span>
+                    <h3 class="empty-title">No Orders Yet</h3>
+                    <p class="empty-sub">You have not placed any orders yet. Select your bottle size to place your first order.</p>
+                    <button type="button" class="btn-empty-order" id="btnEmptyGoShop">
+                        Order Water Now →
+                    </button>
+                </div>
             </div>
         </div>
-    </footer>
 
-    <!-- TRACK ORDER MODAL -->
-    <div class="track-modal-backdrop hidden" id="trackModalBackdrop">
-        <div class="track-modal-box">
-            <div class="track-modal-header">
-                <div>
-                    <h3 class="track-modal-title">Track Your Order</h3>
-                    <p class="track-modal-sub">Order ID दर्ज करके लाइव स्टेटस चेक करें</p>
+        <!-- =============================================================== -->
+        <!-- 3. PROFILE VIEW (Customer Details & Editing in Firestore)      -->
+        <!-- =============================================================== -->
+        <div class="view-screen hidden" id="profileView">
+            <div class="section-container profile-container">
+                <div class="profile-card">
+                    <div class="profile-header-strip">
+                        <div class="profile-avatar-wrap">
+                            <div class="profile-avatar-circle" id="profileAvatarLetter">R</div>
+                        </div>
+                        <div class="profile-identity">
+                            <h2 class="profile-greeting" id="profileGreeting">Hi, Customer</h2>
+                            <div class="profile-meta-row">
+                                <span class="profile-cid-badge" id="profileCustIdBadge">Customer ID: CUST-000000</span>
+                                <span class="profile-email-badge" id="profileEmailBadge">guest@rajvaari.in</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Not Logged In Notice -->
+                    <div class="profile-auth-prompt hidden" id="profileAuthPrompt">
+                        <div class="prompt-icon">🔐</div>
+                        <div class="prompt-text">
+                            <h4>Save your delivery details</h4>
+                            <p>Sign in with your email to automatically pre-fill delivery details on every order.</p>
+                        </div>
+                        <button type="button" class="btn-prompt-login" id="btnProfileLoginPrompt">
+                            Sign In / Register
+                        </button>
+                    </div>
+
+                    <!-- Editable Customer Profile Form -->
+                    <form id="profileForm" class="profile-form" onsubmit="return false;">
+                        <div class="profile-form-section-title">Personal Information</div>
+
+                        <div class="form-row-two">
+                            <div class="form-group">
+                                <label class="form-label" for="profName">Customer Name</label>
+                                <input type="text" id="profName" class="form-control" placeholder="Your Full Name">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="profEmail">Email Address (Account)</label>
+                                <input type="email" id="profEmail" class="form-control" readonly placeholder="Your Email">
+                            </div>
+                        </div>
+
+                        <div class="form-row-two">
+                            <div class="form-group">
+                                <label class="form-label" for="profMobile">Mobile Number</label>
+                                <input type="tel" id="profMobile" class="form-control" placeholder="10-digit Mobile" maxlength="10">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="profAltMobile">Alternate Number</label>
+                                <input type="tel" id="profAltMobile" class="form-control" placeholder="Optional Alternate Number" maxlength="10">
+                            </div>
+                        </div>
+
+                        <div class="profile-form-section-title">Saved Delivery Address</div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="profAddress">Full Address</label>
+                            <textarea id="profAddress" class="form-control" rows="2" placeholder="House/Shop No., Street, Landmark"></textarea>
+                        </div>
+
+                        <div class="form-row-two">
+                            <div class="form-group">
+                                <label class="form-label" for="profVillage">Village / Area</label>
+                                <input type="text" id="profVillage" class="form-control" placeholder="Village or Area">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="profCity">City</label>
+                                <input type="text" id="profCity" class="form-control" placeholder="City">
+                            </div>
+                        </div>
+
+                        <div class="form-row-three">
+                            <div class="form-group">
+                                <label class="form-label" for="profDistrict">District</label>
+                                <input type="text" id="profDistrict" class="form-control" placeholder="District">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="profState">State</label>
+                                <input type="text" id="profState" class="form-control" value="Rajasthan">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="profPincode">PIN Code</label>
+                                <input type="tel" id="profPincode" class="form-control" placeholder="6-digit PIN" maxlength="6">
+                            </div>
+                        </div>
+
+                        <div class="profile-actions-row">
+                            <button type="button" class="btn-save-profile" id="btnSaveProfile">
+                                <span class="btn-spinner hidden" id="saveProfileSpinner"></span>
+                                <span id="saveProfileBtnText">💾 Save Profile</span>
+                            </button>
+                            <button type="button" class="btn-logout" id="btnLogout">
+                                Sign Out
+                            </button>
+                        </div>
+                    </form>
                 </div>
-                <button type="button" class="modal-close-btn" id="btnCloseTrackModal" aria-label="Close modal">×</button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- AUTHENTICATION MODAL (Email & Password) -->
+    <div class="modal-backdrop hidden" id="authModal">
+        <div class="auth-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="authModalTitle">
+            <button type="button" class="modal-close-btn" id="btnAuthClose" aria-label="Close auth dialog">✕</button>
+
+            <div class="auth-modal-brand">
+                <span class="auth-brand-drop">💧</span>
+                <span class="auth-brand-name">RAJVAARI</span>
+                <span class="auth-brand-tag">शुद्ध पानी, भरोसे के साथ</span>
             </div>
 
-            <form class="track-modal-form" id="trackModalForm">
-                <div class="input-group">
-                    <label for="modalOrderIdInput">Order Number</label>
-                    <input type="text" id="modalOrderIdInput" placeholder="RAJ-XXXXXXXX" required>
-                </div>
-                <button type="submit" class="btn-track-check" id="btnTrackCheck">
-                    <span class="btn-spinner hidden" id="trackModalSpinner"></span>
-                    <span id="trackCheckText">CHECK STATUS</span>
-                </button>
-            </form>
+            <!-- Tabs: Sign In / Create Account -->
+            <div class="auth-tabs-row">
+                <button type="button" class="auth-tab-btn active" id="btnTabSignIn">Sign In</button>
+                <button type="button" class="auth-tab-btn" id="btnTabSignUp">Create Account</button>
+            </div>
 
-            <div class="track-modal-result hidden" id="trackModalResult"></div>
+            <div class="auth-modal-body">
+                <!-- SIGN IN FORM -->
+                <form id="signInForm" onsubmit="return false;">
+                    <div class="form-group">
+                        <label class="form-label" for="authLoginEmail">Email Address</label>
+                        <input type="email" id="authLoginEmail" class="form-control" placeholder="name@example.com" required autocomplete="email">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="authLoginPass">Password</label>
+                        <input type="password" id="authLoginPass" class="form-control" placeholder="Enter your password" required autocomplete="current-password">
+                    </div>
+
+                    <div class="auth-error-box hidden" id="authLoginError"></div>
+
+                    <button type="button" class="btn-auth-primary" id="btnSubmitSignIn">
+                        <span class="btn-spinner hidden" id="loginSpinner"></span>
+                        <span id="loginBtnText">Sign In</span>
+                    </button>
+                </form>
+
+                <!-- CREATE ACCOUNT FORM -->
+                <form id="signUpForm" class="hidden" onsubmit="return false;">
+                    <div class="form-group">
+                        <label class="form-label" for="authRegisterName">Full Name</label>
+                        <input type="text" id="authRegisterName" class="form-control" placeholder="Enter your full name" required autocomplete="name">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="authRegisterEmail">Email Address</label>
+                        <input type="email" id="authRegisterEmail" class="form-control" placeholder="name@example.com" required autocomplete="email">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="authRegisterMobile">Mobile Number</label>
+                        <input type="tel" id="authRegisterMobile" class="form-control" placeholder="10-digit mobile" maxlength="10" required autocomplete="tel">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="authRegisterPass">Password (min 6 chars)</label>
+                        <input type="password" id="authRegisterPass" class="form-control" placeholder="Create a secure password" minlength="6" required autocomplete="new-password">
+                    </div>
+
+                    <div class="auth-error-box hidden" id="authRegisterError"></div>
+
+                    <button type="button" class="btn-auth-primary" id="btnSubmitSignUp">
+                        <span class="btn-spinner hidden" id="registerSpinner"></span>
+                        <span id="registerBtnText">Create Account</span>
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
 
-    <!-- Toast Notification -->
-    <div id="toastNotification" class="toast-box hidden"></div>
+    <!-- ORDER DETAIL MODAL -->
+    <div class="modal-backdrop hidden" id="orderDetailModal">
+        <div class="order-detail-dialog" role="dialog" aria-modal="true" aria-labelledby="orderDetailTitle">
+            <button type="button" class="modal-close-btn" id="btnOrderDetailClose" aria-label="Close details">✕</button>
+            <div id="orderDetailContent">
+                <!-- Dynamically populated -->
+            </div>
+        </div>
+    </div>
 
+    <!-- MOBILE BOTTOM NAVIGATION (Thumb Ergonomics) -->
+    <nav class="mobile-bottom-nav" aria-label="Mobile Navigation">
+        <button type="button" class="bottom-nav-item active" data-target="homeView" id="bNavHome">
+            <span class="b-icon">🏠</span>
+            <span class="b-label">Home</span>
+        </button>
+        <button type="button" class="bottom-nav-item" data-target="ordersView" id="bNavOrders">
+            <span class="b-icon">📦</span>
+            <span class="b-label">Orders</span>
+        </button>
+        <button type="button" class="bottom-nav-item" data-target="profileView" id="bNavProfile">
+            <span class="b-icon">👤</span>
+            <span class="b-label">Profile</span>
+        </button>
+        <button type="button" class="bottom-nav-item" id="bNavAccount">
+            <span class="b-icon">🔐</span>
+            <span class="b-label" id="bNavAccountLabel">Account</span>
+        </button>
+    </nav>
+
+    <!-- FLOATING TOAST NOTIFICATION -->
+    <div class="toast-box hidden" id="toastBox" role="alert" aria-live="polite"></div>
+
+    <!-- Scripts -->
     <script src="app.js"></script>
 </body>
 </html>

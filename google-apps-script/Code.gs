@@ -48,13 +48,15 @@ const SCRIPT_CONFIG = {
   SHEET_NAME: "Orders",
   BRAND_NAME: "RAJVAARI",
   PRODUCT_NAME: "RAJVAARI Drinking Water",
+  UPI_ID: "9950906310-2@ybl",
+  UPI_PAYEE_NAME: "RAJVAARI WATER",
 
   // SMS GATEWAY CREDENTIALS (Configure here or in Script Properties)
   SMS_API_URL: "",     // e.g. "https://www.fast2sms.com/dev/bulkV2" or your SMS gateway URL
   SMS_AUTH_KEY: "",    // Your SMS Provider API Key
   SMS_SENDER_ID: "RJVARI", // Sender ID (Approval based)
 
-  // 29 COLUMNS DEFINITION
+  // EXACT 31 COLUMNS DEFINITION
   COLUMNS: [
     "Order ID",              // Col 1
     "Timestamp",             // Col 2
@@ -84,7 +86,9 @@ const SCRIPT_CONFIG = {
     "Order Date",            // Col 26
     "Expected Delivery",     // Col 27
     "Customer Message Status",// Col 28
-    "Notes"                  // Col 29
+    "Notes",                 // Col 29
+    "Firebase UID",          // Col 30
+    "Customer ID"            // Col 31
   ]
 };
 
@@ -136,7 +140,7 @@ function doGet(e) {
         return jsonResponse({ success: false, error: "Order ID not found" });
       }
 
-      const rowValues = sheet.getRange(rowIndex, 1, 1, 29).getValues()[0];
+      const rowValues = sheet.getRange(rowIndex, 1, 1, 31).getValues()[0];
       return jsonResponse({
         success: true,
         order: {
@@ -152,7 +156,11 @@ function doGet(e) {
           paymentId: rowValues[22],
           orderStatus: rowValues[23],
           deliveryStatus: rowValues[24],
-          expectedDelivery: rowValues[26]
+          expectedDelivery: rowValues[26],
+          customerMessageStatus: rowValues[27],
+          notes: rowValues[28],
+          firebaseUid: rowValues[29],
+          customerId: rowValues[30]
         }
       });
     }
@@ -227,7 +235,9 @@ function createOrder(data) {
       orderDate,                                        // 26. Order Date
       "Pending confirmation",                           // 27. Expected Delivery
       "PENDING",                                        // 28. Customer Message Status
-      String(data.notes || "Order created. Verification payment pending.") // 29. Notes
+      String(data.notes || "Order created. Verification payment pending."), // 29. Notes
+      String(data.firebaseUid || "").trim(),            // 30. Firebase UID
+      String(data.customerId || "").trim()              // 31. Customer ID
     ];
 
     sheet.appendRow(row);
