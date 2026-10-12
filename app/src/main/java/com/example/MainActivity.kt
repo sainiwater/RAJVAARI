@@ -64,10 +64,12 @@ fun RajvaariAppScreen(modifier: Modifier = Modifier) {
             ViewGroup.LayoutParams.MATCH_PARENT
           )
 
+          // Use software layer on WebView to avoid DRM rendernode / Mesa GPU failures on cloud streaming emulators
+          setLayerType(android.view.View.LAYER_TYPE_SOFTWARE, null)
+
           settings.apply {
             javaScriptEnabled = true
             domStorageEnabled = true
-            databaseEnabled = true
             useWideViewPort = true
             loadWithOverviewMode = true
             cacheMode = WebSettings.LOAD_DEFAULT
@@ -79,6 +81,17 @@ fun RajvaariAppScreen(modifier: Modifier = Modifier) {
           webChromeClient = WebChromeClient()
 
           webViewClient = object : WebViewClient() {
+            override fun onRenderProcessGone(
+              view: WebView?,
+              detail: android.webkit.RenderProcessGoneDetail?
+            ): Boolean {
+              view?.let { wv ->
+                (wv.parent as? ViewGroup)?.removeView(wv)
+                wv.destroy()
+              }
+              return true
+            }
+
             override fun shouldOverrideUrlLoading(
               view: WebView?,
               request: WebResourceRequest?
