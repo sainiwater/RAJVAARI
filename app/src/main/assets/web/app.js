@@ -192,10 +192,68 @@ function onUserSignedOut() {
 }
 
 // ============================================================================
-// 5. NAVIGATION (HOME & PROFILE ONLY)
+// 5. NAVIGATION & ORDER CHECKOUT MODAL LOGIC
 // ============================================================================
+function openOrderCheckout(prodKey) {
+    if (prodKey) {
+        selectProduct(prodKey);
+    }
+    const checkoutModal = document.getElementById("orderCheckoutModal");
+    if (checkoutModal) {
+        checkoutModal.classList.remove("hidden");
+        document.body.style.overflow = "hidden";
+    }
+
+    const orderLoginGate = document.getElementById("orderLoginGate");
+    const orderFormWrapper = document.getElementById("orderFormWrapper");
+
+    if (!currentUser) {
+        if (orderLoginGate) orderLoginGate.classList.remove("hidden");
+        if (orderFormWrapper) orderFormWrapper.classList.add("hidden");
+    } else {
+        if (orderLoginGate) orderLoginGate.classList.add("hidden");
+        if (orderFormWrapper) orderFormWrapper.classList.remove("hidden");
+        // Auto-fill delivery address from profile if empty
+        prefillOrderFormFromProfile();
+        setTimeout(() => {
+            document.getElementById("custName")?.focus();
+        }, 100);
+    }
+}
+
+function closeOrderCheckout() {
+    const checkoutModal = document.getElementById("orderCheckoutModal");
+    if (checkoutModal) {
+        checkoutModal.classList.add("hidden");
+        document.body.style.overflow = "";
+    }
+}
+
+function selectProduct(prodKey) {
+    activeProduct = PRODUCTS[prodKey] || PRODUCTS["1L"];
+
+    const card1L = document.getElementById("cardProduct1L");
+    const card200ml = document.getElementById("cardProduct200ml");
+
+    // Update card visual state
+    if (card1L && card200ml) {
+        card1L.classList.toggle("active", prodKey === "1L");
+        card200ml.classList.toggle("active", prodKey === "200ml");
+    }
+
+    // Get quantity from the product card's stepper
+    const activeCard = prodKey === "1L" ? card1L : card200ml;
+    const qtyInput = activeCard?.querySelector(".input-qty-step");
+    if (qtyInput) {
+        activeQuantity = parseInt(qtyInput.value, 10) || 1;
+    }
+
+    updateCheckoutSummary();
+    validateOrderForm();
+}
+
 function setupNavigation() {
-    const navTabs = document.querySelectorAll(".nav-link-btn");
+    const navTabs = document.querySelectorAll(".menu-nav-btn, .nav-link-btn");
     const bottomNavItems = document.querySelectorAll(".mob-nav-btn");
 
     function switchView(targetViewId) {
@@ -229,29 +287,76 @@ function setupNavigation() {
         window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
-    // Desktop Tabs
-    navTabs.forEach(tab => {
-        tab.addEventListener("click", () => {
-            const target = tab.dataset.target;
-            if (target) switchView(target);
-        });
+    // Desktop Menu Buttons
+    document.getElementById("tabHome")?.addEventListener("click", () => {
+        switchView("homeView");
     });
 
-    // Mobile Bottom Bar Tabs
-    bottomNavItems.forEach(item => {
-        if (item.dataset.target) {
-            item.addEventListener("click", () => {
-                switchView(item.dataset.target);
-            });
+    document.getElementById("tabProfile")?.addEventListener("click", () => {
+        switchView("profileView");
+    });
+
+    document.getElementById("tabShop")?.addEventListener("click", () => {
+        switchView("homeView");
+        setTimeout(() => {
+            document.getElementById("productsSection")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 80);
+    });
+
+    document.getElementById("tabAbout")?.addEventListener("click", () => {
+        switchView("homeView");
+        setTimeout(() => {
+            document.getElementById("aboutStoreSection")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 80);
+    });
+
+    document.getElementById("tabContact")?.addEventListener("click", () => {
+        switchView("homeView");
+        setTimeout(() => {
+            document.getElementById("aboutStoreSection")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 80);
+    });
+
+    // Mobile Bottom Nav Items
+    document.getElementById("bNavHome")?.addEventListener("click", () => {
+        switchView("homeView");
+    });
+
+    document.getElementById("bNavShop")?.addEventListener("click", () => {
+        switchView("homeView");
+        setTimeout(() => {
+            document.getElementById("productsSection")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 80);
+    });
+
+    document.getElementById("bNavProfile")?.addEventListener("click", () => {
+        switchView("profileView");
+    });
+
+    // Mobile Cart Button & Header Cart Button: Opens Order Checkout Modal (Prompt: ORDER FORM SIRF ORDER PR CLIK KRNE PR HI SHOW HO)
+    document.getElementById("bNavOrder")?.addEventListener("click", () => {
+        openOrderCheckout();
+    });
+
+    document.getElementById("btnHeaderCart")?.addEventListener("click", () => {
+        openOrderCheckout();
+    });
+
+    // Top Bar Links
+    document.getElementById("topBtnAccount")?.addEventListener("click", () => {
+        if (currentUser) {
+            switchView("profileView");
+        } else {
+            openAuthModal("signin");
         }
     });
 
-    // Mobile "Order Now" Bottom Button: Scrolls to Order Section on Home
-    document.getElementById("bNavOrder")?.addEventListener("click", () => {
-        switchView("homeView");
-        setTimeout(() => {
-            scrollToOrderSection();
-        }, 100);
+    document.getElementById("topBtnLogin")?.addEventListener("click", () => {
+        if (currentUser) {
+            switchView("profileView");
+        } else {
+            openAuthModal("signin");
+        }
     });
 
     // Brand Logo Button: Always Home
@@ -259,29 +364,7 @@ function setupNavigation() {
         switchView("homeView");
     });
 
-    // Header "Order Water" CTA
-    document.getElementById("btnHeaderOrderNow")?.addEventListener("click", () => {
-        switchView("homeView");
-        setTimeout(() => {
-            scrollToOrderSection();
-        }, 100);
-    });
-
-    // Hero "Order Water Now" CTA
-    document.getElementById("btnHeroOrder")?.addEventListener("click", () => {
-        scrollToOrderSection();
-    });
-
-    // Hero "Track Orders" CTA -> switches to Profile View (where order history lives)
-    document.getElementById("btnHeroViewOrders")?.addEventListener("click", () => {
-        switchView("profileView");
-        setTimeout(() => {
-            const hist = document.getElementById("profileHistorySection");
-            if (hist) hist.scrollIntoView({ behavior: "smooth", block: "start" });
-        }, 120);
-    });
-
-    // Gate Login Buttons (Prompt 2: ORDER SYTM LOGIN KE BAD SHOW HO)
+    // Gate Login Buttons (In Order Checkout Modal & Profile)
     document.getElementById("btnOrderGateLogin")?.addEventListener("click", () => {
         openAuthModal("signin");
     });
@@ -297,13 +380,94 @@ function setupNavigation() {
             openAuthModal("signin");
         }
     });
-}
 
-function scrollToOrderSection() {
-    const orderSec = document.getElementById("orderSection");
-    if (orderSec) {
-        orderSec.scrollIntoView({ behavior: "smooth", block: "start" });
+    // Order Checkout Modal Close Buttons
+    document.getElementById("btnOrderCheckoutClose")?.addEventListener("click", () => {
+        closeOrderCheckout();
+    });
+
+    document.getElementById("orderCheckoutModal")?.addEventListener("click", (e) => {
+        if (e.target.id === "orderCheckoutModal") {
+            closeOrderCheckout();
+        }
+    });
+
+    // Place Another Order Button in Payment Card: Resets form and re-opens checkout
+    document.getElementById("btnPlaceAnotherOrder")?.addEventListener("click", () => {
+        document.getElementById("paymentSection")?.classList.add("hidden");
+        document.getElementById("orderFormWrapper")?.classList.remove("hidden");
+        const btnPlace = document.getElementById("btnPlaceOrder");
+        if (btnPlace) {
+            btnPlace.disabled = false;
+            document.getElementById("btnOrderText").textContent = `Place Order (₹${activeQuantity * activeProduct.pricePerPack}) →`;
+        }
+    });
+
+    // Search Feature
+    const searchInput = document.getElementById("searchKeywordInput");
+    const searchBtn = document.getElementById("btnSearchSubmit");
+
+    function executeSearch() {
+        const query = (searchInput?.value || "").toLowerCase().trim();
+        switchView("homeView");
+        if (query.includes("200")) {
+            selectProduct("200ml");
+            document.getElementById("cardProduct200ml")?.scrollIntoView({ behavior: "smooth", block: "center" });
+            showToast("200ml Drinking Water Pack found!");
+        } else if (query.includes("1l") || query.includes("liter") || query.includes("litre")) {
+            selectProduct("1L");
+            document.getElementById("cardProduct1L")?.scrollIntoView({ behavior: "smooth", block: "center" });
+            showToast("1 Liter Drinking Water Pack found!");
+        } else {
+            document.getElementById("productsSection")?.scrollIntoView({ behavior: "smooth", block: "start" });
+            showToast("Showing Packaged Drinking Water Wholesale Packs");
+        }
     }
+
+    searchBtn?.addEventListener("click", executeSearch);
+    searchInput?.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+            executeSearch();
+        }
+    });
+
+    // Category Ribbon Pills
+    document.querySelectorAll(".cat-pill").forEach(pill => {
+        pill.addEventListener("click", () => {
+            document.querySelectorAll(".cat-pill").forEach(p => p.classList.remove("active"));
+            pill.classList.add("active");
+            const cat = pill.dataset.cat;
+            if (cat === "200ml") {
+                selectProduct("200ml");
+                document.getElementById("cardProduct200ml")?.scrollIntoView({ behavior: "smooth", block: "center" });
+            } else if (cat === "1l") {
+                selectProduct("1L");
+                document.getElementById("cardProduct1L")?.scrollIntoView({ behavior: "smooth", block: "center" });
+            } else {
+                document.getElementById("productsSection")?.scrollIntoView({ behavior: "smooth", block: "start" });
+            }
+        });
+    });
+
+    // Footer Links Navigation
+    document.querySelectorAll(".f-link").forEach(fLink => {
+        fLink.addEventListener("click", () => {
+            const target = fLink.dataset.target;
+            if (target === "homeView" || target === "profileView") {
+                switchView(target);
+            } else if (target === "aboutSection" || target === "contactSection") {
+                switchView("homeView");
+                setTimeout(() => {
+                    document.getElementById("aboutStoreSection")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                }, 80);
+            } else if (target === "shopSection") {
+                switchView("homeView");
+                setTimeout(() => {
+                    document.getElementById("productsSection")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                }, 80);
+            }
+        });
+    });
 }
 
 // ============================================================================
@@ -313,52 +477,26 @@ function setupProductSelection() {
     const card1L = document.getElementById("cardProduct1L");
     const card200ml = document.getElementById("cardProduct200ml");
 
-    function selectProduct(prodKey) {
-        activeProduct = PRODUCTS[prodKey] || PRODUCTS["1L"];
-
-        // Update card visual state
-        if (card1L && card200ml) {
-            card1L.classList.toggle("active", prodKey === "1L");
-            card200ml.classList.toggle("active", prodKey === "200ml");
-        }
-
-        // Get quantity from the product card's stepper
-        const activeCard = prodKey === "1L" ? card1L : card200ml;
-        const qtyInput = activeCard?.querySelector(".input-qty-step");
-        if (qtyInput) {
-            activeQuantity = parseInt(qtyInput.value, 10) || 1;
-        }
-
-        updateCheckoutSummary();
-        validateOrderForm();
-    }
-
     // Card Click Selection
     card1L?.addEventListener("click", (e) => {
-        if (!e.target.closest(".modern-stepper")) {
+        if (!e.target.closest(".modern-stepper") && !e.target.closest(".btn-prod-order")) {
             selectProduct("1L");
         }
     });
 
     card200ml?.addEventListener("click", (e) => {
-        if (!e.target.closest(".modern-stepper")) {
+        if (!e.target.closest(".modern-stepper") && !e.target.closest(".btn-prod-order")) {
             selectProduct("200ml");
         }
     });
 
-    // "Order Now" Buttons on Cards: Auto-select and scroll smoothly to order form
+    // "Order Now" Buttons on Cards: Auto-select and OPEN CHECKOUT MODAL ONLY!
+    // (Prompt: AB ORDER FORM SIRF ORDER PR CLIK KRNE PR HI SHOW HO)
     document.querySelectorAll(".btn-prod-order").forEach(btn => {
         btn.addEventListener("click", (e) => {
             e.stopPropagation();
-            const prodKey = btn.dataset.product;
-            selectProduct(prodKey);
-            if (!currentUser) {
-                // If not logged in, prompt user to sign in immediately as requested
-                openAuthModal("signin");
-                return;
-            }
-            scrollToOrderSection();
-            document.getElementById("custName")?.focus();
+            const prodKey = btn.dataset.product || "1L";
+            openOrderCheckout(prodKey);
         });
     });
 }
