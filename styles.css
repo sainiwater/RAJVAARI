@@ -681,6 +681,169 @@ a {
     border-color: var(--gold-border);
 }
 
+.card-pack-badge {
+    position: absolute;
+    top: 48px;
+    right: 18px;
+    background: #0284C7;
+    color: #FFFFFF;
+    font-size: 9.5px;
+    font-weight: 800;
+    letter-spacing: 0.8px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    box-shadow: 0 2px 6px rgba(2, 132, 199, 0.25);
+}
+
+.card-pack-badge.tag-gold {
+    background: #D97706;
+    box-shadow: 0 2px 6px rgba(217, 119, 6, 0.25);
+}
+
+.product-pack-spec {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 4px 0 10px;
+}
+
+.spec-chip {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--emerald-dark);
+    background: var(--emerald-soft);
+    padding: 2px 8px;
+    border-radius: 4px;
+    border: 1px solid var(--emerald-border);
+}
+
+.spec-unit {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-dim);
+}
+
+.price-per-bottle-note {
+    font-size: 12px;
+    color: #059669;
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+
+/* Wholesale Shrink-Wrapped Pack Visual 3D Stage */
+.wholesale-pack-visual {
+    position: relative;
+    width: 140px;
+    height: 150px;
+    background: linear-gradient(180deg, rgba(240, 249, 255, 0.6) 0%, rgba(224, 242, 254, 0.8) 100%);
+    border: 2px solid rgba(2, 132, 199, 0.35);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 10px;
+    box-shadow: 0 8px 20px rgba(2, 132, 199, 0.12), inset 0 0 15px rgba(255, 255, 255, 0.8);
+    overflow: hidden;
+}
+
+.shrink-wrap-glare {
+    position: absolute;
+    top: -20px;
+    left: -40px;
+    width: 200px;
+    height: 60px;
+    background: linear-gradient(45deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.6) 50%, rgba(255, 255, 255, 0) 100%);
+    transform: rotate(-25deg);
+    pointer-events: none;
+}
+
+.pack-bottles-row {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    margin-bottom: 8px;
+}
+
+.mini-bottle {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 32px;
+}
+
+.mini-cap {
+    width: 14px;
+    height: 7px;
+    background: #0284C7;
+    border-radius: 2px 2px 0 0;
+}
+
+.mini-body {
+    width: 30px;
+    height: 80px;
+    background: linear-gradient(180deg, #FFFFFF 0%, #E0F2FE 100%);
+    border: 1.5px solid #0284C7;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    font-weight: 800;
+    color: #0369A1;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+}
+
+.pack-bottles-grid-mini {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px;
+    width: 100%;
+    margin-bottom: 8px;
+}
+
+.mini-cup {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.cup-cap {
+    width: 12px;
+    height: 6px;
+    background: #D97706;
+    border-radius: 2px 2px 0 0;
+}
+
+.cup-body {
+    width: 24px;
+    height: 65px;
+    background: linear-gradient(180deg, #FFFFFF 0%, #FEF3C7 100%);
+    border: 1.5px solid #D97706;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 7.5px;
+    font-weight: 800;
+    color: #B45309;
+}
+
+.pack-carton-tray {
+    width: 100%;
+    background: #0F172A;
+    color: #38BDF8;
+    font-size: 8px;
+    font-weight: 800;
+    letter-spacing: 0.6px;
+    text-align: center;
+    padding: 3px 2px;
+    border-radius: 4px;
+    border-top: 1.5px solid #38BDF8;
+}
+
 /* Card Bottle Visual Stage */
 .product-bottle-stage {
     height: 160px;
@@ -894,6 +1057,53 @@ a {
 /* ========================================================================== */
 .order-dashboard-section {
     padding: 24px 0 48px;
+}
+
+.single-order-card-container {
+    max-width: 660px;
+    margin: 0 auto;
+}
+
+.order-login-gate,
+.profile-history-locked-state {
+    text-align: center;
+    padding: 36px 24px;
+    background: #FAFAFA;
+    border: 1.5px dashed #D1D5DB;
+    border-radius: var(--radius-md);
+    margin: 16px 0;
+}
+
+.login-gate-art,
+.locked-icon {
+    font-size: 38px;
+    margin-bottom: 12px;
+    display: inline-block;
+}
+
+.login-gate-title,
+.profile-history-locked-state h4 {
+    font-family: var(--font-heading);
+    font-size: 19px;
+    font-weight: 800;
+    color: var(--text-main);
+    margin-bottom: 8px;
+}
+
+.login-gate-subtitle,
+.profile-history-locked-state p {
+    font-size: 13.5px;
+    color: var(--text-dim);
+    max-width: 440px;
+    margin: 0 auto 20px;
+    line-height: 1.5;
+}
+
+.highlight-bottles-line {
+    background: rgba(16, 185, 129, 0.08);
+    border-radius: 6px;
+    padding: 6px 10px;
+    margin: 4px 0;
 }
 
 .dashboard-grid {

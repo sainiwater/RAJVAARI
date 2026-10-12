@@ -31,21 +31,33 @@ const firebaseConfig = {
 const UPI_ID = "9950906310-2@ybl";
 const UPI_PAYEE_NAME = "RAJVAARI WATER";
 
-// STRICTLY 2 PRODUCTS ONLY
+// STRICTLY 2 WHOLESALE BULK PACK PRODUCTS ONLY (Full Pack Only)
 const PRODUCTS = {
     "1L": {
         id: "1L",
         product: "RAJVAARI Drinking Water",
         brand: "RAJVAARI",
         bottleSize: "1 Liter",
-        price: 20
+        packTitle: "1 Liter (Pack of 12 Bottles)",
+        bottlesPerPack: 12,
+        packPrice: 120,
+        pricePerBottle: 10,
+        unit: "pack",
+        packBadge: "12 Bottles / Pack",
+        unitLabel: "Full Pack Only"
     },
     "200ml": {
         id: "200ml",
         product: "RAJVAARI Drinking Water",
         brand: "RAJVAARI",
         bottleSize: "200ml",
-        price: 10
+        packTitle: "200ml (Pack of 48 Bottles)",
+        bottlesPerPack: 48,
+        packPrice: 130,
+        pricePerBottle: 2.71,
+        unit: "pack",
+        packBadge: "48 Bottles / Pack",
+        unitLabel: "Full Pack Only"
     }
 };
 
@@ -126,11 +138,23 @@ async function onUserSignedIn(user) {
     const accountNameLabel = document.getElementById("accountNameLabel");
     const accountAvatarIcon = document.getElementById("accountAvatarIcon");
     const checkoutUserText = document.getElementById("checkoutUserText");
+    const orderLoginGate = document.getElementById("orderLoginGate");
+    const orderFormWrapper = document.getElementById("orderFormWrapper");
+    const profileHistoryLocked = document.getElementById("profileHistoryLockedCard");
+    const profileTrackerBox = document.getElementById("profileTrackerBox");
 
     const displayName = user.displayName || (user.email ? user.email.split("@")[0] : "Customer");
     if (accountNameLabel) accountNameLabel.textContent = displayName;
     if (accountAvatarIcon) accountAvatarIcon.textContent = "✓";
     if (checkoutUserText) checkoutUserText.textContent = `Signed In: ${displayName}`;
+
+    // Unlock Order Form on Home (Prompt 2: ORDER SYTM LOGIN KE BAD SHOW HO)
+    if (orderLoginGate) orderLoginGate.classList.add("hidden");
+    if (orderFormWrapper) orderFormWrapper.classList.remove("hidden");
+
+    // Unlock Order History on Profile
+    if (profileHistoryLocked) profileHistoryLocked.classList.add("hidden");
+    if (profileTrackerBox) profileTrackerBox.classList.remove("hidden");
 
     // Load customer profile from Firestore & synchronize with Google Sheet
     await loadCustomerProfileFromFirestore(user.uid, user.email);
@@ -146,10 +170,22 @@ function onUserSignedOut() {
     const accountNameLabel = document.getElementById("accountNameLabel");
     const accountAvatarIcon = document.getElementById("accountAvatarIcon");
     const checkoutUserText = document.getElementById("checkoutUserText");
+    const orderLoginGate = document.getElementById("orderLoginGate");
+    const orderFormWrapper = document.getElementById("orderFormWrapper");
+    const profileHistoryLocked = document.getElementById("profileHistoryLockedCard");
+    const profileTrackerBox = document.getElementById("profileTrackerBox");
 
     if (accountNameLabel) accountNameLabel.textContent = "Login";
     if (accountAvatarIcon) accountAvatarIcon.textContent = "👤";
-    if (checkoutUserText) checkoutUserText.textContent = "Guest Checkout";
+    if (checkoutUserText) checkoutUserText.textContent = "Guest";
+
+    // Lock Order Form on Home when logged out (Prompt 2: ORDER SYTM LOGIN KE BAD SHOW HO)
+    if (orderLoginGate) orderLoginGate.classList.remove("hidden");
+    if (orderFormWrapper) orderFormWrapper.classList.add("hidden");
+
+    // Lock Order History on Profile when logged out (Prompt 2: LOGOUT KE BAD BHI ORDER HISTRY LOOK HI)
+    if (profileHistoryLocked) profileHistoryLocked.classList.remove("hidden");
+    if (profileTrackerBox) profileTrackerBox.classList.add("hidden");
 
     updateProfileViewUI(null);
     renderOrdersList();
@@ -236,14 +272,21 @@ function setupNavigation() {
         scrollToOrderSection();
     });
 
-    // Hero "Track Orders" CTA
+    // Hero "Track Orders" CTA -> switches to Profile View (where order history lives)
     document.getElementById("btnHeroViewOrders")?.addEventListener("click", () => {
-        const orderHistoryCard = document.querySelector(".order-history-column");
-        if (orderHistoryCard) {
-            orderHistoryCard.scrollIntoView({ behavior: "smooth", block: "center" });
-            const inp = document.getElementById("inputTrackOrderId");
-            if (inp) inp.focus();
-        }
+        switchView("profileView");
+        setTimeout(() => {
+            const hist = document.getElementById("profileHistorySection");
+            if (hist) hist.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 120);
+    });
+
+    // Gate Login Buttons (Prompt 2: ORDER SYTM LOGIN KE BAD SHOW HO)
+    document.getElementById("btnOrderGateLogin")?.addEventListener("click", () => {
+        openAuthModal("signin");
+    });
+    document.getElementById("btnProfileHistoryLogin")?.addEventListener("click", () => {
+        openAuthModal("signin");
     });
 
     // Account Pill Click: Opens Profile if logged in, or Auth Modal if not
@@ -309,6 +352,11 @@ function setupProductSelection() {
             e.stopPropagation();
             const prodKey = btn.dataset.product;
             selectProduct(prodKey);
+            if (!currentUser) {
+                // If not logged in, prompt user to sign in immediately as requested
+                openAuthModal("signin");
+                return;
+            }
             scrollToOrderSection();
             document.getElementById("custName")?.focus();
         });
@@ -384,26 +432,37 @@ function updateCheckoutSummary() {
 
     const sumProd = document.getElementById("summaryProdName");
     const sumSize = document.getElementById("summaryBottleSize");
-    const sumPrice = document.getElementById("summaryPrice");
     const sumQtyNum = document.getElementById("summaryQtyNum");
+    const sumTotalBottles = document.getElementById("summaryTotalBottles");
+    const sumPackPrice = document.getElementById("summaryPackPrice");
+    const sumBottlePrice = document.getElementById("summaryBottlePrice");
     const sumSubtotal = document.getElementById("summarySubtotal");
     const sumDelivery = document.getElementById("summaryDelivery");
     const sumTotal = document.getElementById("summaryTotal");
+    const btnOrderText = document.getElementById("btnOrderText");
 
-    const price = activeProduct.price;
-    const subtotal = price * activeQuantity;
+    const packs = activeQuantity;
+    const bottlesPerPack = activeProduct.bottlesPerPack;
+    const totalBottles = packs * bottlesPerPack;
+    const packPrice = activeProduct.packPrice;
+    const subtotal = packs * packPrice;
 
-    if (badge) badge.textContent = activeProduct.bottleSize;
+    if (badge) badge.textContent = activeProduct.packTitle || activeProduct.bottleSize;
     if (title) title.textContent = activeProduct.product;
-    if (priceTag) priceTag.textContent = `₹${price} / bottle`;
+    if (priceTag) priceTag.textContent = `₹${packPrice} / Pack (₹${activeProduct.pricePerBottle}/bottle)`;
 
     if (sumProd) sumProd.textContent = activeProduct.product;
-    if (sumSize) sumSize.textContent = activeProduct.bottleSize;
-    if (sumPrice) sumPrice.textContent = `₹${price}`;
-    if (sumQtyNum) sumQtyNum.textContent = activeQuantity;
+    if (sumSize) sumSize.textContent = `${activeProduct.bottleSize} (${bottlesPerPack} Bottles Pack)`;
+    if (sumQtyNum) sumQtyNum.textContent = `${packs} Pack${packs > 1 ? 's' : ''}`;
+    if (sumTotalBottles) sumTotalBottles.textContent = `${totalBottles} Bottles (${packs} × ${bottlesPerPack})`;
+    if (sumPackPrice) sumPackPrice.textContent = `₹${packPrice} / Pack`;
+    if (sumBottlePrice) sumBottlePrice.textContent = `₹${activeProduct.pricePerBottle} / bottle`;
     if (sumSubtotal) sumSubtotal.textContent = `₹${subtotal}`;
     if (sumDelivery) sumDelivery.textContent = "FREE (₹0)";
     if (sumTotal) sumTotal.textContent = `₹${subtotal}`;
+    if (btnOrderText && document.getElementById("btnPlaceOrder")?.dataset.locked !== "true") {
+        btnOrderText.textContent = `Place Order (₹${subtotal}) →`;
+    }
 }
 
 // ============================================================================
@@ -478,9 +537,23 @@ function toggleFieldError(inputId, errorId, isValid) {
     }
 }
 
-// HANDLE ORDER SUBMISSION
+function generateClientOrderId() {
+    const today = new Date();
+    const y = today.getFullYear();
+    const m = String(today.getMonth() + 1).padStart(2, '0');
+    const d = String(today.getDate()).padStart(2, '0');
+    const rand = Math.floor(1000 + Math.random() * 9000);
+    return `RAJ-${y}${m}${d}-${rand}`;
+}
+
+// HANDLE ORDER SUBMISSION WITH DOUBLE-SUBMISSION LOCK & BULK PACK DETAILS
 async function handleOrderSubmission() {
     if (isSubmittingOrder) return;
+    if (!currentUser) {
+        showToast("Please sign in to place wholesale order.");
+        openAuthModal("signin");
+        return;
+    }
     if (!validateOrderForm()) {
         showToast("Please fill all required delivery details correctly.");
         return;
@@ -493,7 +566,11 @@ async function handleOrderSubmission() {
 
     if (btnPlaceOrder) btnPlaceOrder.disabled = true;
     if (orderSpinner) orderSpinner.classList.remove("hidden");
-    if (btnOrderText) btnOrderText.textContent = "Creating Order...";
+    if (btnOrderText) btnOrderText.textContent = "Locking & Processing...";
+
+    // LOCK INPUTS IMMEDIATELY TO PREVENT DOUBLE-CLICK & DUPLICATE SUBMISSION
+    const formInputs = document.querySelectorAll("#orderForm input, #orderForm textarea, #orderForm button");
+    formInputs.forEach(el => el.disabled = true);
 
     const custName = document.getElementById("custName").value.trim();
     const custMobile = document.getElementById("custMobile").value.trim();
@@ -506,14 +583,23 @@ async function handleOrderSubmission() {
     const custPincode = document.getElementById("custPincode").value.trim();
     const custMessage = document.getElementById("custMessage")?.value.trim() || "";
 
-    const price = activeProduct.price;
-    const subtotal = price * activeQuantity;
+    const packsCount = activeQuantity;
+    const bottlesPerPack = activeProduct.bottlesPerPack;
+    const totalBottles = packsCount * bottlesPerPack;
+    const pricePerPack = activeProduct.packPrice;
+    const pricePerBottle = activeProduct.pricePerBottle;
+    const subtotal = packsCount * pricePerPack;
 
     const firebaseUid = currentUser ? currentUser.uid : "";
     const customerId = (currentCustomerProfile && currentCustomerProfile.customerId) ? currentCustomerProfile.customerId : "";
 
+    // Generate unique order ID upfront for idempotency
+    const orderId = generateClientOrderId();
+    const packNote = `Pack Order: ${packsCount} Pack(s) [${totalBottles} Bottles total @ ₹${pricePerPack}/pack (₹${pricePerBottle}/btl)]. ${custMessage}`;
+
     const payload = {
         action: "createOrder",
+        orderId: orderId,
         customerName: custName,
         mobile: custMobile,
         mobileNumber: custMobile,
@@ -528,13 +614,18 @@ async function handleOrderSubmission() {
         product: activeProduct.product,
         brand: activeProduct.brand,
         bottleSize: activeProduct.bottleSize,
-        quantity: activeQuantity,
-        pricePerBottle: price,
+        bottlesPerPack: bottlesPerPack,
+        packsCount: packsCount,
+        quantity: packsCount,
+        totalBottleCount: totalBottles,
+        totalBottles: totalBottles,
+        pricePerPack: pricePerPack,
+        pricePerBottle: pricePerBottle,
         subtotal: subtotal,
         deliveryCharge: 0,
         discount: 0,
         totalOrderAmount: subtotal,
-        notes: custMessage || "Order created. Verification payment pending.",
+        notes: packNote,
         customerMessage: custMessage || "",
         firebaseUID: firebaseUid,
         firebaseUid: firebaseUid,
@@ -563,9 +654,11 @@ async function handleOrderSubmission() {
             throw new Error(result.error || result.message || "Unable to create order. Please try again.");
         }
 
+        const finalOrderId = result.orderId || orderId;
+
         // Successfully created order!
         activeCreatedOrder = {
-            orderId: result.orderId,
+            orderId: finalOrderId,
             timestamp: new Date().toISOString(),
             orderDate: new Date().toLocaleDateString("en-IN"),
             customerName: custName,
@@ -580,8 +673,12 @@ async function handleOrderSubmission() {
             product: activeProduct.product,
             brand: activeProduct.brand,
             bottleSize: activeProduct.bottleSize,
-            quantity: activeQuantity,
-            pricePerBottle: price,
+            bottlesPerPack: bottlesPerPack,
+            packsCount: packsCount,
+            quantity: packsCount,
+            totalBottles: totalBottles,
+            pricePerPack: pricePerPack,
+            pricePerBottle: pricePerBottle,
             subtotal: subtotal,
             totalOrderAmount: subtotal,
             paymentRequired: 1,
@@ -590,7 +687,7 @@ async function handleOrderSubmission() {
             orderStatus: "PENDING",
             deliveryStatus: "PENDING",
             expectedDelivery: "Within 24 Hours",
-            notes: custMessage,
+            notes: packNote,
             firebaseUid: firebaseUid,
             customerId: customerId
         };
@@ -613,18 +710,20 @@ async function handleOrderSubmission() {
             });
         }
 
-        // Lock order form system immediately so no duplicate clicks or entries can be submitted
+        // Lock order form system permanently for this order so no duplicate clicks or entries can be submitted
         if (btnPlaceOrder) {
             btnPlaceOrder.disabled = true;
             btnPlaceOrder.dataset.locked = "true";
         }
-        if (btnOrderText) btnOrderText.textContent = "✓ Order Placed & Locked";
+        if (btnOrderText) btnOrderText.textContent = "✓ Order Placed & System Locked";
 
         // Reveal Payment Section on Home
         revealPaymentSection(activeCreatedOrder);
         showToast("✓ Order created! Please complete ₹1 verification payment.");
     } catch (err) {
         console.error("Order creation failed:", err);
+        // Re-enable form inputs on failure so user can retry
+        formInputs.forEach(el => el.disabled = false);
         showToast(err.message || "Unable to create order. Please try again.");
     } finally {
         isSubmittingOrder = false;
@@ -632,7 +731,7 @@ async function handleOrderSubmission() {
         // Keep button locked if order was placed successfully
         if (btnPlaceOrder && btnPlaceOrder.dataset.locked !== "true") {
             btnPlaceOrder.disabled = false;
-            if (btnOrderText) btnOrderText.textContent = "Place Order →";
+            if (btnOrderText) btnOrderText.textContent = `Place Order (₹${subtotal}) →`;
             validateOrderForm();
         }
     }
@@ -848,45 +947,49 @@ function setupOrderTrackingAndDetails() {
 }
 
 function renderOrdersList() {
-    const homeContainer = document.getElementById("ordersListContainer");
-    const homeEmptyCard = document.getElementById("emptyOrdersCard");
-
     const profileContainer = document.getElementById("profileOrdersListContainer");
     const profileEmptyCard = document.getElementById("emptyProfileOrdersCard");
+    const profileLockedCard = document.getElementById("profileHistoryLockedCard");
+    const profileTrackerBox = document.getElementById("profileTrackerBox");
+
+    // When logged out: lock order history in Profile
+    if (!currentUser) {
+        if (profileLockedCard) profileLockedCard.classList.remove("hidden");
+        if (profileTrackerBox) profileTrackerBox.classList.add("hidden");
+        if (profileContainer) profileContainer.innerHTML = "";
+        if (profileEmptyCard) profileEmptyCard.classList.add("hidden");
+        updateOrderNotificationBadge(0);
+        return;
+    }
+
+    if (profileLockedCard) profileLockedCard.classList.add("hidden");
+    if (profileTrackerBox) profileTrackerBox.classList.remove("hidden");
 
     let orders = getStoredOrders();
 
-    // Filter for current user if logged in
-    if (currentUser) {
-        orders = orders.filter(o => !o.firebaseUid || o.firebaseUid === currentUser.uid || (currentCustomerProfile && o.mobileNumber === currentCustomerProfile.mobileNumber));
-    }
+    // Filter for current user
+    orders = orders.filter(o => !o.firebaseUid || o.firebaseUid === currentUser.uid || (currentCustomerProfile && o.mobileNumber === currentCustomerProfile.mobileNumber));
 
     if (orders.length === 0) {
-        if (homeContainer) homeContainer.innerHTML = "";
-        if (homeEmptyCard) homeEmptyCard.classList.remove("hidden");
         if (profileContainer) profileContainer.innerHTML = "";
         if (profileEmptyCard) profileEmptyCard.classList.remove("hidden");
         updateOrderNotificationBadge(0);
         return;
     }
 
-    if (homeEmptyCard) homeEmptyCard.classList.add("hidden");
     if (profileEmptyCard) profileEmptyCard.classList.add("hidden");
 
-    let hasVerifiedOrder = false;
-    let verifiedOrderId = "";
-
     const cardsHtml = orders.map(o => {
-        if (o.paymentStatus === "YES") {
-            hasVerifiedOrder = true;
-            verifiedOrderId = o.orderId;
-        }
-
         const dateStr = o.orderDate || (o.timestamp ? new Date(o.timestamp).toLocaleDateString("en-IN") : "");
 
         const payClass = (o.paymentStatus === "YES") ? "st-yes" : ((o.paymentStatus === "NO") ? "st-no" : "st-pending");
         const orderClass = (o.orderStatus === "CONFIRMED") ? "st-confirmed" : ((o.orderStatus === "CANCELLED") ? "st-cancelled" : "st-pending");
         const delivClass = (o.deliveryStatus === "DELIVERED") ? "st-delivered" : ((o.deliveryStatus === "CANCELLED") ? "st-cancelled" : "st-processing");
+
+        const is200 = String(o.bottleSize || "").includes("200");
+        const btlPerPack = o.bottlesPerPack || (is200 ? 48 : 12);
+        const packs = o.packsCount || o.quantity || 1;
+        const totalBtls = o.totalBottles || o.totalBottleCount || (packs * btlPerPack);
 
         return `
             <div class="order-history-card" onclick="window.rajvaariViewOrder('${o.orderId}')">
@@ -898,7 +1001,7 @@ function renderOrdersList() {
                 <div class="order-card-body">
                     <div>
                         <div class="order-prod-title">RAJVAARI Drinking Water</div>
-                        <div class="order-prod-meta">${o.bottleSize} • Qty: <strong>${o.quantity}</strong></div>
+                        <div class="order-prod-meta">${o.bottleSize} • Qty: <strong>${packs} Pack${packs > 1 ? 's' : ''} (${totalBtls} Bottles)</strong></div>
                     </div>
                     <div class="order-total-num">₹${o.totalOrderAmount}</div>
                 </div>
@@ -917,20 +1020,7 @@ function renderOrdersList() {
         `;
     }).join("");
 
-    if (homeContainer) homeContainer.innerHTML = cardsHtml;
     if (profileContainer) profileContainer.innerHTML = cardsHtml;
-
-    // Show verified alert banner if applicable on Home
-    const alertBanner = document.getElementById("orderConfirmedAlert");
-    const alertOrderId = document.getElementById("alertOrderId");
-    if (alertBanner && alertOrderId) {
-        if (hasVerifiedOrder) {
-            alertOrderId.textContent = verifiedOrderId;
-            alertBanner.classList.remove("hidden");
-        } else {
-            alertBanner.classList.add("hidden");
-        }
-    }
 
     // Compute and refresh notification badge count for unseen orders
     refreshUnseenOrdersBadge(orders);
@@ -1015,8 +1105,8 @@ function openOrderDetailModal(order) {
                 <strong>${order.bottleSize}</strong>
             </div>
             <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13.5px;">
-                <span>Quantity:</span>
-                <strong>${order.quantity}</strong>
+                <span>Packs Ordered:</span>
+                <strong>${order.quantity} Pack${order.quantity > 1 ? 's' : ''} (${order.totalBottles || (order.quantity * (String(order.bottleSize).includes('200') ? 48 : 12))} Bottles)</strong>
             </div>
             <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13.5px;">
                 <span>Total Amount:</span>

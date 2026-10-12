@@ -255,7 +255,9 @@ function doGet(e) {
 // 3. createOrder(data) - Orders Sheet Entry (31 Columns)
 // ============================================================================
 function createOrder(data) {
+  const lock = LockService.getScriptLock();
   try {
+    lock.waitLock(15000); // 15 sec lock to prevent double entries and concurrent race conditions
     const sheet = getOrdersSheet();
 
     // Required fields check
@@ -272,25 +274,53 @@ function createOrder(data) {
       });
     }
 
-    // Only 2 products allowed
-    const bottleSize = (String(data.bottleSize).indexOf("200") !== -1) ? "200ml" : "1 Liter";
-    const quantity = Math.max(1, parseInt(data.quantity, 10) || 1);
+    const orderId = String(data.orderId || "").trim() || createOrderId();
 
-    // Authority Pricing
-    const pricePerBottle = (bottleSize === "200ml") ? 10 : 20;
-    const subtotal = quantity * pricePerBottle;
+    // Server-side Idempotency / Duplicate Protection
+    const dataRange = sheet.getDataRange().getValues();
+    for (let r = 1; r < dataRange.length; r++) {
+      if (dataRange[r][0] === orderId) {
+        // Order with this orderId already exists! Return without adding a duplicate row
+        return jsonResponse({
+          success: true,
+          message: "Order already registered",
+          orderId: orderId,
+          paymentRequired: 1,
+          paymentStatus: dataRange[r][21] || "PENDING",
+          orderStatus: dataRange[r][23] || "PENDING",
+          totalOrderAmount: dataRange[r][19],
+          bottleSize: dataRange[r][13],
+          quantity: dataRange[r][14]
+        });
+      }
+    }
+
+    // Wholesale Bulk Pack Specification:
+    // Product 1: 1 Liter Drinking Water, 12 bottles per pack, ₹120 per pack (₹10/bottle)
+    // Product 2: 200ml Drinking Water, 48 bottles per pack, ₹130 per pack (~₹2.71/bottle)
+    const is200ml = (String(data.bottleSize || "").indexOf("200") !== -1 || String(data.productId || "").indexOf("200") !== -1);
+    const bottleSize = is200ml ? "200ml (Pack of 48)" : "1 Liter (Pack of 12)";
+    const bottlesPerPack = is200ml ? 48 : 12;
+    const pricePerPack = is200ml ? 130 : 120;
+    const pricePerBottle = is200ml ? 2.71 : 10;
+    const quantity = Math.max(1, parseInt(data.quantity || data.packsCount, 10) || 1); // quantity in packs
+    const totalBottles = quantity * bottlesPerPack;
+
+    // Wholesale pricing calculation
+    const subtotal = quantity * pricePerPack;
     const deliveryCharge = 0;
     const discount = 0;
     const totalOrderAmount = subtotal + deliveryCharge - discount;
 
-    const orderId = createOrderId();
     const now = new Date();
     const timestamp = Utilities.formatDate(now, "Asia/Kolkata", "yyyy-MM-dd'T'HH:mm:ss'Z'");
     const orderDate = Utilities.formatDate(now, "Asia/Kolkata", "dd/MM/yyyy");
 
-    const firebaseUid = String(data.firebaseUid || "").trim();
+    const firebaseUid = String(data.firebaseUid || data.firebaseUID || "").trim();
     const customerId = String(data.customerId || "").trim();
-    const notes = String(data.notes || data.customerMessage || "Order created. Verification payment pending.").trim();
+    const customNotes = String(data.notes || data.customerMessage || "").trim();
+    const packNote = "Pack Order: " + quantity + " Pack(s) [" + totalBottles + " Bottles total @ ₹" + pricePerPack + "/pack (₹" + pricePerBottle + "/btl)].";
+    const notes = customNotes ? (packNote + " Note: " + customNotes) : packNote;
 
     // EXACT 31 COLUMNS
     const row = [
@@ -308,7 +338,7 @@ function createOrder(data) {
       SCRIPT_CONFIG.PRODUCT_NAME,                       // Col 12: Product
       SCRIPT_CONFIG.BRAND_NAME,                         // Col 13: Brand
       bottleSize,                                       // Col 14: Bottle Size
-      quantity,                                         // Col 15: Quantity
+      quantity,                                         // Col 15: Quantity (Packs)
       pricePerBottle,                                   // Col 16: Price Per Bottle
       subtotal,                                         // Col 17: Subtotal
       deliveryCharge,                                   // Col 18: Delivery Charge
@@ -338,6 +368,11 @@ function createOrder(data) {
       orderStatus: "PENDING",
       totalOrderAmount: totalOrderAmount,
       bottleSize: bottleSize,
+      bottlesPerPack: bottlesPerPack,
+      packsCount: quantity,
+      totalBottles: totalBottles,
+      pricePerPack: pricePerPack,
+      pricePerBottle: pricePerBottle,
       quantity: quantity
     });
   } catch (err) {
@@ -345,6 +380,10 @@ function createOrder(data) {
       success: false,
       error: "Order creation failed: " + err.toString()
     });
+  } finally {
+    try {
+      lock.releaseLock();
+    } catch (e) {}
   }
 }
 
