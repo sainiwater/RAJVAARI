@@ -7,24 +7,31 @@
  */
 
 :root {
-    /* Canvas & Surfaces */
-    --bg-canvas: #F8FAFC;
+    /* Canvas & Surfaces - Fresh Crystal Spring Canvas */
+    --bg-canvas: #F0FAF6;
     --bg-card: #FFFFFF;
-    --bg-subtle: #F1F5F9;
+    --bg-subtle: #E8F5F0;
     --bg-elevated: #FFFFFF;
 
-    /* Typography Hierarchy */
-    --text-main: #0F172A;
-    --text-body: #334155;
-    --text-dim: #64748B;
-    --text-faint: #94A3B8;
+    /* Typography Hierarchy - Distinct, Crisp & Modern */
+    --text-main: #06261E;
+    --text-body: #1E3A34;
+    --text-dim: #4B6B63;
+    --text-faint: #829D96;
 
-    /* Primary Accent: Vibrant Water Azure Blue */
-    --emerald-primary: #0284C7;
-    --emerald-dark: #0369A1;
-    --emerald-deep: #0C4A6E;
-    --emerald-soft: #F0F9FF;
-    --emerald-border: #BAE6FD;
+    /* Theme Green Accents (Pure Natural Purity) */
+    --emerald-primary: #059669;
+    --emerald-dark: #047857;
+    --emerald-deep: #064E3B;
+    --emerald-soft: #ECFDF5;
+    --emerald-border: #A7F3D0;
+
+    /* Theme Blue Accents (Deep Oceanic Crystal) */
+    --blue-primary: #0284C7;
+    --blue-dark: #0369A1;
+    --blue-deep: #0C4A6E;
+    --blue-soft: #F0F9FF;
+    --blue-border: #BAE6FD;
 
     /* Secondary Accent: Amber Gold */
     --gold-primary: #D97706;
@@ -32,9 +39,13 @@
     --gold-border: #FDE68A;
 
     /* Accent: Delicate Pure Water Aqua */
-    --water-aqua: #0EA5E9;
-    --water-soft: #F0F9FF;
-    --water-tint: #E0F2FE;
+    --water-aqua: #00B4D8;
+    --water-soft: #E6F8FB;
+    --water-tint: #CCF2F7;
+
+    /* Green-Blue Dual Gradient */
+    --grad-green-blue: linear-gradient(135deg, #059669 0%, #0284C7 100%);
+    --grad-green-blue-hover: linear-gradient(135deg, #10B981 0%, #0096C7 100%);
 
     /* Semantic Status */
     --status-pending-bg: #FEF3C7;
@@ -54,14 +65,14 @@
     --status-cancel-border: #FECACA;
 
     /* Borders & Shadows */
-    --border-card: #E2E8F0;
-    --border-light: #E2E8F0;
-    --border-focus: #0284C7;
+    --border-card: #D1EAE2;
+    --border-light: #E0F2EC;
+    --border-focus: #059669;
 
-    --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.05), 0 1px 2px rgba(15, 23, 42, 0.03);
-    --shadow-card: 0 4px 16px -2px rgba(15, 23, 42, 0.06), 0 2px 6px -1px rgba(15, 23, 42, 0.03);
-    --shadow-hover: 0 12px 28px -4px rgba(2, 132, 199, 0.12), 0 4px 12px -2px rgba(15, 23, 42, 0.04);
-    --shadow-dialog: 0 24px 48px -8px rgba(15, 23, 42, 0.22);
+    --shadow-sm: 0 1px 3px rgba(6, 38, 30, 0.05), 0 1px 2px rgba(6, 38, 30, 0.03);
+    --shadow-card: 0 4px 18px -2px rgba(6, 38, 30, 0.06), 0 2px 6px -1px rgba(6, 38, 30, 0.03);
+    --shadow-hover: 0 12px 28px -4px rgba(5, 150, 105, 0.16), 0 4px 12px -2px rgba(2, 132, 199, 0.1);
+    --shadow-dialog: 0 24px 48px -8px rgba(6, 38, 30, 0.25);
 
     /* Radii */
     --radius-sm: 8px;
@@ -69,9 +80,9 @@
     --radius-lg: 18px;
     --radius-full: 9999px;
 
-    /* Fonts */
-    --font-heading: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
-    --font-body: 'Outfit', 'Mukta', -apple-system, BlinkMacSystemFont, sans-serif;
+    /* Fonts - Distinct Display + High Legibility */
+    --font-heading: 'Plus Jakarta Sans', 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-body: 'Plus Jakarta Sans', 'Outfit', 'Mukta', -apple-system, BlinkMacSystemFont, sans-serif;
     --font-hindi: 'Mukta', sans-serif;
 
     /* Transitions */
@@ -97,7 +108,7 @@ body {
     background-color: var(--bg-canvas);
     color: var(--text-body);
     font-family: var(--font-body);
-    line-height: 1.5;
+    line-height: 1.55;
     min-height: 100vh;
     overflow-x: hidden;
     position: relative;
@@ -124,7 +135,7 @@ a {
     display: none !important;
 }
 
-/* AMBIENT ORGANIC ATMOSPHERE */
+/* AMBIENT ORGANIC ATMOSPHERE - GREEN & BLUE FRESH MIST */
 .water-canvas-atmosphere {
     position: fixed;
     top: 0;
@@ -146,17 +157,17 @@ a {
 .glow-emerald {
     top: -100px;
     right: 5%;
-    width: 500px;
-    height: 500px;
-    background: radial-gradient(circle, #D1FAE5 0%, rgba(209, 250, 229, 0) 70%);
+    width: 550px;
+    height: 550px;
+    background: radial-gradient(circle, #A7F3D0 0%, rgba(167, 243, 208, 0) 70%);
 }
 
-.glow-champagne {
+.glow-cyan {
     bottom: -150px;
     left: 5%;
     width: 600px;
     height: 600px;
-    background: radial-gradient(circle, #FEF3C7 0%, rgba(254, 243, 199, 0) 70%);
+    background: radial-gradient(circle, #BAE6FD 0%, rgba(186, 230, 253, 0) 70%);
 }
 
 /* TOP ECOMMERCE ANNOUNCEMENT & CONTACT BAR */
@@ -245,22 +256,45 @@ a {
     gap: 20px;
 }
 
+/* COLORFUL ART LOGO IN HEADER (RAJVAARI) */
 .brand-identity-btn {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     text-align: left;
     transition: transform var(--anim-fast);
+    padding: 4px 6px;
+    border-radius: 12px;
 }
 
 .brand-identity-btn:hover {
     transform: translateY(-1px);
 }
 
+.brand-art-badge {
+    position: relative;
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #10B981 0%, #00B4D8 45%, #2563EB 85%, #8B5CF6 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35), 0 2px 8px rgba(0, 180, 216, 0.25);
+    border: 2px solid rgba(255, 255, 255, 0.85);
+    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    flex-shrink: 0;
+}
+
+.brand-identity-btn:hover .brand-art-badge {
+    transform: scale(1.08) rotate(4deg);
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.45), 0 4px 12px rgba(2, 132, 199, 0.35);
+}
+
 .brand-crystal-drop {
-    font-size: 28px;
+    font-size: 26px;
     line-height: 1;
-    filter: drop-shadow(0 2px 4px rgba(2, 132, 199, 0.3));
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
 }
 
 .brand-text-block {
@@ -268,37 +302,75 @@ a {
     flex-direction: column;
 }
 
-.brand-wordmark {
-    font-family: var(--font-heading);
-    font-size: 22px;
+.brand-wordmark-art {
+    display: inline-flex;
+    align-items: center;
+    gap: 1px;
+    font-family: 'Plus Jakarta Sans', 'Outfit', sans-serif;
+    font-size: 25px;
     font-weight: 900;
-    letter-spacing: -0.3px;
-    color: #0284C7;
+    letter-spacing: 2px;
     line-height: 1.1;
 }
 
-.brand-tagline {
-    font-size: 11px;
-    font-weight: 600;
-    color: #64748B;
-    letter-spacing: 0.2px;
+.art-char {
+    display: inline-block;
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.2s ease;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
-/* ECOMMERCE SEARCH BAR */
+.brand-identity-btn:hover .art-char {
+    transform: translateY(-2px);
+    filter: brightness(1.15);
+}
+
+/* Multi-color Artistic Letter Styling */
+.art-char.ch-1 { color: #059669; } /* R - Deep Emerald */
+.art-char.ch-2 { color: #10B981; } /* A - Vivid Green */
+.art-char.ch-3 { color: #06D6A0; } /* J - Mint Turquoise */
+.art-char.ch-4 { color: #00B4D8; } /* V - Crystal Aqua */
+.art-char.ch-5 { color: #0284C7; } /* A - Azure Blue */
+.art-char.ch-6 { color: #2563EB; } /* A - Royal Blue */
+.art-char.ch-7 { color: #4F46E5; } /* R - Indigo Iris */
+.art-char.ch-8 { color: #F59E0B; } /* I - Radiant Amber Gold */
+
+.art-sparkle-star {
+    font-size: 15px;
+    margin-left: 4px;
+    display: inline-block;
+    animation: sparkleSpin 2.5s infinite ease-in-out;
+}
+
+@keyframes sparkleSpin {
+    0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.9; }
+    50% { transform: scale(1.3) rotate(20deg); opacity: 1; filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.8)); }
+}
+
+.brand-tagline {
+    font-family: var(--font-hindi);
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #047857;
+    letter-spacing: 0.3px;
+    margin-top: 1px;
+}
+
+/* ECOMMERCE SEARCH BAR - GREEN & BLUE THEME */
 .header-search-bar {
     display: flex;
     align-items: center;
     flex: 1;
     max-width: 520px;
-    border: 2px solid #0284C7;
+    border: 2px solid #059669;
     border-radius: 9999px;
     overflow: hidden;
     background: #FFFFFF;
+    box-shadow: 0 2px 8px rgba(5, 150, 105, 0.08);
 }
 
 .search-category-select-wrapper {
-    background: #F8FAFC;
-    border-right: 1px solid #E2E8F0;
+    background: #F0FDF4;
+    border-right: 1px solid #D1EAE2;
     padding: 0 12px;
 }
 
@@ -306,8 +378,8 @@ a {
     border: none;
     background: transparent;
     font-size: 13px;
-    font-weight: 600;
-    color: #334155;
+    font-weight: 700;
+    color: #064E3B;
     padding: 10px 0;
     cursor: pointer;
     outline: none;
@@ -319,18 +391,22 @@ a {
     padding: 10px 14px;
     font-size: 13.5px;
     outline: none;
-    color: #1E293B;
+    color: #06261E;
 }
 
 .search-submit-btn {
-    background: #0284C7;
+    background: linear-gradient(135deg, #059669 0%, #0284C7 100%);
     color: #FFFFFF;
     border: none;
-    padding: 10px 18px;
-    font-size: 14px;
-    font-weight: 700;
+    padding: 10px 20px;
+    font-size: 15px;
+    font-weight: 800;
     cursor: pointer;
-    transition: background 0.15s ease;
+    transition: all 0.15s ease;
+}
+
+.search-submit-btn:hover {
+    background: linear-gradient(135deg, #10B981 0%, #0096C7 100%);
 }
 
 .search-submit-btn:hover {
@@ -425,11 +501,11 @@ a {
     font-size: 14px;
 }
 
-/* HORIZONTAL ECOMMERCE MENU NAVIGATION */
+/* HORIZONTAL ECOMMERCE MENU NAVIGATION - GREEN & BLUE GRADIENT */
 .ecommerce-menu-bar {
-    background: linear-gradient(90deg, #071E33 0%, #0A355C 50%, #071E33 100%);
-    border-bottom: 2px solid #00A8E8;
-    box-shadow: 0 4px 12px rgba(7, 30, 51, 0.12);
+    background: linear-gradient(90deg, #064E3B 0%, #047857 25%, #0284C7 75%, #0369A1 100%);
+    border-bottom: 2px solid #10B981;
+    box-shadow: 0 4px 14px rgba(6, 78, 59, 0.2);
     position: relative;
     z-index: 99;
 }
@@ -467,13 +543,13 @@ a {
 
 .menu-nav-btn:hover {
     color: #FFFFFF;
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.12);
 }
 
 .menu-nav-btn.active {
-    background: #00A8E8;
+    background: #10B981;
     color: #FFFFFF;
-    box-shadow: 0 2px 8px rgba(0, 168, 232, 0.35);
+    box-shadow: 0 2px 10px rgba(16, 185, 129, 0.45);
 }
 
 .btn-chat-whatsapp {
@@ -609,20 +685,44 @@ a {
 
 .hero-title {
     font-family: var(--font-heading);
-    font-size: 52px;
+    font-size: 54px;
     font-weight: 900;
-    letter-spacing: 2px;
+    letter-spacing: -0.5px;
     color: var(--text-main);
     line-height: 1.05;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
+}
+
+.hero-brand-colorful {
+    font-family: 'Plus Jakarta Sans', 'Outfit', sans-serif;
+    background: linear-gradient(120deg, #059669 0%, #06D6A0 25%, #00B4D8 50%, #0284C7 75%, #3B82F6 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: inline-block;
+    font-weight: 900;
+    letter-spacing: 2px;
+    filter: drop-shadow(0 4px 12px rgba(16, 185, 129, 0.28));
+}
+
+.hero-title-sub {
+    display: block;
+    font-size: 28px;
+    font-weight: 800;
+    color: #0C4A6E;
+    letter-spacing: 0.5px;
+    margin-top: 4px;
 }
 
 .hero-tagline-hindi {
     font-family: var(--font-hindi);
-    font-size: 24px;
-    font-weight: 700;
-    color: var(--emerald-primary);
+    font-size: 23px;
+    font-weight: 800;
+    background: linear-gradient(90deg, #047857 0%, #0284C7 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: inline-block;
     margin-bottom: 16px;
+    letter-spacing: 0.2px;
 }
 
 .hero-lead-description {
@@ -641,20 +741,20 @@ a {
 }
 
 .btn-primary-emerald {
-    padding: 13px 26px;
-    background: var(--emerald-primary);
+    padding: 14px 28px;
+    background: linear-gradient(135deg, #059669 0%, #0284C7 100%);
     color: #FFFFFF;
-    font-weight: 700;
+    font-weight: 800;
     font-size: 15px;
     border-radius: var(--radius-full);
-    box-shadow: 0 4px 14px rgba(5, 150, 105, 0.28);
+    box-shadow: 0 4px 16px rgba(5, 150, 105, 0.35);
     transition: all var(--anim-fast);
 }
 
 .btn-primary-emerald:hover {
-    background: var(--emerald-dark);
+    background: linear-gradient(135deg, #10B981 0%, #0096C7 100%);
     transform: translateY(-2px);
-    box-shadow: 0 6px 18px rgba(5, 150, 105, 0.35);
+    box-shadow: 0 8px 22px rgba(5, 150, 105, 0.45);
 }
 
 .btn-secondary-warm {
@@ -911,20 +1011,20 @@ a {
     position: absolute;
     top: 16px;
     right: 18px;
-    background: var(--emerald-soft);
-    color: var(--emerald-dark);
-    border: 1px solid var(--emerald-border);
+    background: linear-gradient(135deg, #059669 0%, #0284C7 100%);
+    color: #FFFFFF;
     font-size: 10px;
     font-weight: 800;
     letter-spacing: 0.8px;
-    padding: 4px 10px;
+    padding: 5px 12px;
     border-radius: var(--radius-full);
+    box-shadow: 0 2px 8px rgba(5, 150, 105, 0.3);
 }
 
 .card-purity-tag.tag-compact {
-    background: var(--gold-soft);
-    color: var(--gold-primary);
-    border-color: var(--gold-border);
+    background: linear-gradient(135deg, #0284C7 0%, #00B4D8 100%);
+    color: #FFFFFF;
+    box-shadow: 0 2px 8px rgba(2, 132, 199, 0.3);
 }
 
 .card-pack-badge {
@@ -1281,21 +1381,21 @@ a {
 
 .btn-card-order-now {
     width: 100%;
-    padding: 12px;
-    background: var(--text-main);
+    padding: 13px 20px;
+    background: linear-gradient(135deg, #059669 0%, #0284C7 100%);
     color: #FFFFFF;
-    font-size: 14px;
-    font-weight: 700;
+    font-size: 14.5px;
+    font-weight: 800;
     border-radius: var(--radius-full);
-    letter-spacing: 0.2px;
+    letter-spacing: 0.3px;
     transition: all var(--anim-fast);
-    box-shadow: var(--shadow-sm);
+    box-shadow: 0 4px 14px rgba(5, 150, 105, 0.28);
 }
 
 .btn-card-order-now:hover {
-    background: var(--emerald-primary);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);
+    background: linear-gradient(135deg, #10B981 0%, #0096C7 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(5, 150, 105, 0.38);
 }
 
 /* ========================================================================== */
@@ -3046,7 +3146,7 @@ a {
     font-size: 15px;
     font-weight: 800;
     margin-bottom: 16px;
-    border-bottom: 2px solid #00A8E8;
+    border-bottom: 2px solid #10B981;
     padding-bottom: 6px;
     display: inline-block;
     text-transform: uppercase;
@@ -3054,13 +3154,20 @@ a {
 }
 
 .footer-brand-title {
-    font-size: 22px;
+    font-size: 24px;
     font-weight: 900;
     color: #FFFFFF;
     display: flex;
     align-items: center;
     gap: 8px;
     margin-bottom: 12px;
+}
+
+.footer-brand-title strong {
+    background: linear-gradient(120deg, #10B981 0%, #00B4D8 40%, #38BDF8 75%, #F59E0B 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 1.5px;
 }
 
 .footer-brand-desc {
