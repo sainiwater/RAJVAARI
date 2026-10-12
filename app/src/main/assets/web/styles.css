@@ -161,10 +161,10 @@ a {
 
 /* TOP ECOMMERCE ANNOUNCEMENT & CONTACT BAR */
 .top-contact-bar {
-    background: #0F172A;
+    background: #071A2E;
     color: #CBD5E1;
     font-size: 13px;
-    padding: 7px 16px;
+    padding: 8px 16px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     position: relative;
     z-index: 101;
@@ -194,6 +194,14 @@ a {
     gap: 5px;
 }
 
+.top-tagline-text {
+    color: #38BDF8;
+    font-family: var(--font-hindi);
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.3px;
+}
+
 .top-contact-link:hover, .top-action-link:hover {
     color: #38BDF8;
 }
@@ -208,12 +216,13 @@ a {
 }
 
 .top-divider {
-    color: #475569;
+    color: #334E68;
 }
 
 .top-brand-text {
-    color: #38BDF8;
-    font-weight: 700;
+    color: #00A8E8;
+    font-weight: 800;
+    letter-spacing: 0.3px;
 }
 
 /* MAIN ECOMMERCE SEARCH & BRAND HEADER */
@@ -418,8 +427,9 @@ a {
 
 /* HORIZONTAL ECOMMERCE MENU NAVIGATION */
 .ecommerce-menu-bar {
-    background: #0284C7;
-    border-bottom: 2px solid #0369A1;
+    background: linear-gradient(90deg, #071E33 0%, #0A355C 50%, #071E33 100%);
+    border-bottom: 2px solid #00A8E8;
+    box-shadow: 0 4px 12px rgba(7, 30, 51, 0.12);
     position: relative;
     z-index: 99;
 }
@@ -440,23 +450,30 @@ a {
 }
 
 .menu-nav-btn {
-    color: #FFFFFF;
+    color: #E2E8F0;
     font-weight: 700;
     font-size: 13.5px;
     padding: 12px 18px;
-    transition: all 0.15s ease;
-    border-radius: 4px;
+    transition: all 0.18s ease;
+    border-radius: 6px;
     background: transparent;
     border: none;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
     gap: 6px;
+    position: relative;
 }
 
-.menu-nav-btn:hover, .menu-nav-btn.active {
-    background: #0369A1;
+.menu-nav-btn:hover {
     color: #FFFFFF;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.menu-nav-btn.active {
+    background: #00A8E8;
+    color: #FFFFFF;
+    box-shadow: 0 2px 8px rgba(0, 168, 232, 0.35);
 }
 
 .btn-chat-whatsapp {
@@ -2997,14 +3014,14 @@ a {
 }
 
 /* ========================================================================== */
-/* ECOMMERCE FOOTER (Book Pani Online look)                                   */
+/* ECOMMERCE FOOTER (RAJVAARI Drinking Water Theme)                           */
 /* ========================================================================== */
 .clean-luxury-footer {
-    background: #0F172A;
+    background: #071A2E;
     color: #CBD5E1;
     padding: 48px 24px 24px;
     margin-top: 60px;
-    border-top: 4px solid #0284C7;
+    border-top: 4px solid #00A8E8;
 }
 
 .footer-inner {
@@ -3019,12 +3036,17 @@ a {
     margin-bottom: 36px;
 }
 
+.footer-3col-grid {
+    grid-template-columns: 1.8fr 1fr 1.2fr;
+    gap: 40px;
+}
+
 .footer-col-title {
     color: #FFFFFF;
     font-size: 15px;
     font-weight: 800;
     margin-bottom: 16px;
-    border-bottom: 2px solid #0284C7;
+    border-bottom: 2px solid #00A8E8;
     padding-bottom: 6px;
     display: inline-block;
     text-transform: uppercase;
@@ -3123,8 +3145,8 @@ a {
         width: 100%;
     }
 
-    .footer-columns-grid {
-        grid-template-columns: 1fr 1fr;
+    .footer-columns-grid, .footer-3col-grid {
+        grid-template-columns: 1fr;
     }
 
     .about-store-grid {
